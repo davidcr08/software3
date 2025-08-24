@@ -31,7 +31,6 @@ public class Worker {
     @Column(name = "activo")
     private Boolean activo = true;
 
-    // Campos adicionales que suelen ser necesarios
     @Column(name = "email")
     private String email;
 
