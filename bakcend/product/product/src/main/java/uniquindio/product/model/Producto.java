@@ -1,11 +1,18 @@
 package uniquindio.product.model;
 
-import jakarta.persistence.*;
+import java.time.LocalDateTime;
+
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
 import lombok.Getter;
 import lombok.Setter;
 import uniquindio.product.enums.TipoProducto;
-
-import java.time.LocalDateTime;
 
 @Getter
 @Setter
@@ -15,6 +22,7 @@ public class Producto {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
+    @Column(name = "id_producto", length = 36)
     private String idProducto;
 
     @Column(name = "imagenProducto")
