@@ -22,6 +22,7 @@ public class Producto {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
+    @Column(name = "idProducto")
     private String idProducto;
 
     @Column(name = "imagenProducto")

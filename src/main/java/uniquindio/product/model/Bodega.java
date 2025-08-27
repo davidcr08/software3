@@ -55,7 +55,7 @@ public class Bodega {
     @JoinTable(
             name = "bodega_productos",
             joinColumns = @JoinColumn(name = "bodega_id", referencedColumnName = "bodega_id"),
-            inverseJoinColumns = @JoinColumn(name = "producto_id", referencedColumnName = "id_producto")
+            inverseJoinColumns = @JoinColumn(name = "producto_id", referencedColumnName = "idProducto")
     )
     private ArrayList<Producto> inventario = new ArrayList<>();
 }
