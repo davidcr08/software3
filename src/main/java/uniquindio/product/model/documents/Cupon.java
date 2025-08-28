@@ -1,4 +1,4 @@
-package uniquindio.product.model;
+package uniquindio.product.model.documents;
 
 import java.util.Date;
 

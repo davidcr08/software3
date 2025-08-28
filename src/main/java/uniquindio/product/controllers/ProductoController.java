@@ -1,7 +1,7 @@
 package uniquindio.product.controllers;
 
 import uniquindio.product.enums.TipoProducto;
-import uniquindio.product.model.Producto;
+import uniquindio.product.model.documents.Producto;
 import uniquindio.product.services.interfaces.ProductoService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;

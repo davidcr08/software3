@@ -1,4 +1,4 @@
-package uniquindio.product.model;
+package uniquindio.product.model.documents;
 
 import jakarta.persistence.*;
 import lombok.Getter;
@@ -8,8 +8,8 @@ import uniquindio.product.enums.EstadoCuenta;
 @Getter
 @Setter
 @Entity
-@Table(name = "cliente")
-public class Cliente {
+@Table(name = "usuario")
+public class Usuario {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
@@ -35,7 +35,6 @@ public class Cliente {
 
     @Column(name = "contrasena")
     private String contrasena;
-
 
     @Enumerated(EnumType.STRING)
     @Column(name = "estadoCuenta")

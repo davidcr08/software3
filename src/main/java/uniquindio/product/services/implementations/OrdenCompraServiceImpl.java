@@ -1,6 +1,6 @@
 package uniquindio.product.services.implementations;
 
-import uniquindio.product.model.OrdenCompra;
+import uniquindio.product.model.documents.OrdenCompra;
 import uniquindio.product.repositories.OrdenCompraRepository;
 import uniquindio.product.services.interfaces.OrdenCompraService;
 import lombok.RequiredArgsConstructor;

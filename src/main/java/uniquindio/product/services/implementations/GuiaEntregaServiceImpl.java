@@ -1,6 +1,6 @@
 package uniquindio.product.services.implementations;
 
-import uniquindio.product.model.GuiaEntrega;
+import uniquindio.product.model.documents.GuiaEntrega;
 import uniquindio.product.repositories.GuiaEntregaRepository;
 import uniquindio.product.services.interfaces.GuiaEntregaService;
 import lombok.RequiredArgsConstructor;

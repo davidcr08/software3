@@ -1,6 +1,6 @@
 package uniquindio.product.repositories;
 
-import uniquindio.product.model.Pago;
+import uniquindio.product.model.vo.Pago;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 import java.util.List;

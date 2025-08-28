@@ -1,6 +1,6 @@
 package uniquindio.product.controllers;
 
-import uniquindio.product.model.GuiaEntrega;
+import uniquindio.product.model.documents.GuiaEntrega;
 import uniquindio.product.services.interfaces.GuiaEntregaService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;

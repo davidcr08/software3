@@ -1,6 +1,6 @@
 package uniquindio.product.services.implementations;
 
-import uniquindio.product.model.Pago;
+import uniquindio.product.model.vo.Pago;
 import uniquindio.product.repositories.PagoRepository;
 import uniquindio.product.services.interfaces.PagoService;
 import lombok.RequiredArgsConstructor;

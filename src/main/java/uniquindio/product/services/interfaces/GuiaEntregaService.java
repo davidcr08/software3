@@ -1,6 +1,6 @@
 package uniquindio.product.services.interfaces;
 
-import uniquindio.product.model.GuiaEntrega;
+import uniquindio.product.model.documents.GuiaEntrega;
 import java.util.List;
 import java.util.Optional;
 

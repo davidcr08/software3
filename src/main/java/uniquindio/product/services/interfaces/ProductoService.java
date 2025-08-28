@@ -1,7 +1,7 @@
 package uniquindio.product.services.interfaces;
 
 import uniquindio.product.enums.TipoProducto;
-import uniquindio.product.model.Producto;
+import uniquindio.product.model.documents.Producto;
 import java.util.List;
 import java.util.Optional;
 

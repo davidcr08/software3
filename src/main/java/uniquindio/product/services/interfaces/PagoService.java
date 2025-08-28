@@ -1,6 +1,6 @@
 package uniquindio.product.services.interfaces;
 
-import uniquindio.product.model.Pago;
+import uniquindio.product.model.vo.Pago;
 import java.util.List;
 import java.util.Optional;
 

@@ -1,7 +1,7 @@
 package uniquindio.product.repositories;
 
 import uniquindio.product.enums.TipoProducto;
-import uniquindio.product.model.Producto;
+import uniquindio.product.model.documents.Producto;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 import java.util.List;

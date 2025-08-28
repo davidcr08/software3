@@ -1,33 +1,33 @@
 package uniquindio.product.controllers;
 
-import uniquindio.product.model.Cliente;
-import uniquindio.product.services.interfaces.ClienteService;
+import uniquindio.product.model.documents.Usuario;
+import uniquindio.product.services.interfaces.UsuarioService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/clientes")
+@RequestMapping("/api/usuarios")
 @RequiredArgsConstructor
-public class ClienteController {
+public class UsuarioController {
 
-    private final ClienteService clienteService;
+    private final UsuarioService usuarioService;
 
     @PostMapping
-    public ResponseEntity<Cliente> crearCliente(@RequestBody Cliente cliente) {
+    public ResponseEntity<Usuario> crearusuario(@RequestBody Usuario usuario) {
         try {
-            Cliente clienteCreado = clienteService.crearCliente(cliente);
-            return ResponseEntity.ok(clienteCreado);
+            Usuario usuarioCreado = usuarioService.crearusuario(usuario);
+            return ResponseEntity.ok(usuarioCreado);
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest().body(null);
         }
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Cliente> obtenerCliente(@PathVariable String id) {
+    public ResponseEntity<Usuario> obtenerusuario(@PathVariable String id) {
         try {
-            return clienteService.obtenerCliente(id)
+            return usuarioService.obtenerusuario(id)
                     .map(ResponseEntity::ok)
                     .orElse(ResponseEntity.notFound().build());
         } catch (RuntimeException e) {
@@ -36,9 +36,9 @@ public class ClienteController {
     }
 
     @GetMapping("/cedula/{cedula}")
-    public ResponseEntity<Cliente> obtenerClientePorCedula(@PathVariable String cedula) {
+    public ResponseEntity<Usuario> obtenerusuarioPorCedula(@PathVariable String cedula) {
         try {
-            return clienteService.obtenerClientePorCedula(cedula)
+            return usuarioService.obtenerusuarioPorCedula(cedula)
                     .map(ResponseEntity::ok)
                     .orElse(ResponseEntity.notFound().build());
         } catch (RuntimeException e) {
@@ -47,9 +47,9 @@ public class ClienteController {
     }
 
     @GetMapping("/email/{email}")
-    public ResponseEntity<Cliente> obtenerClientePorEmail(@PathVariable String email) {
+    public ResponseEntity<Usuario> obtenerusuarioPorEmail(@PathVariable String email) {
         try {
-            return clienteService.obtenerClientePorEmail(email)
+            return usuarioService.obtenerusuarioPorEmail(email)
                     .map(ResponseEntity::ok)
                     .orElse(ResponseEntity.notFound().build());
         } catch (RuntimeException e) {
@@ -58,19 +58,19 @@ public class ClienteController {
     }
 
     @PutMapping
-    public ResponseEntity<Cliente> actualizarCliente(@RequestBody Cliente cliente) {
+    public ResponseEntity<Usuario> actualizarusuario(@RequestBody Usuario usuario) {
         try {
-            Cliente clienteActualizado = clienteService.actualizarCliente(cliente);
-            return ResponseEntity.ok(clienteActualizado);
+            Usuario usuarioActualizado = usuarioService.actualizarusuario(usuario);
+            return ResponseEntity.ok(usuarioActualizado);
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest().body(null);
         }
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> eliminarCliente(@PathVariable String id) {
+    public ResponseEntity<Void> eliminarusuario(@PathVariable String id) {
         try {
-            clienteService.eliminarCliente(id);
+            usuarioService.eliminarusuario(id);
             return ResponseEntity.ok().build();
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest().build();
@@ -78,10 +78,10 @@ public class ClienteController {
     }
 
     @GetMapping
-    public ResponseEntity<List<Cliente>> listarClientes() {
+    public ResponseEntity<List<Usuario>> listarusuarios() {
         try {
-            List<Cliente> clientes = clienteService.listarClientes();
-            return ResponseEntity.ok(clientes);
+            List<Usuario> usuarios = usuarioService.listarusuarios();
+            return ResponseEntity.ok(usuarios);
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest().body(null);
         }

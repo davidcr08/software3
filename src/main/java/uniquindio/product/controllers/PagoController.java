@@ -1,6 +1,6 @@
 package uniquindio.product.controllers;
 
-import uniquindio.product.model.Pago;
+import uniquindio.product.model.vo.Pago;
 import uniquindio.product.services.interfaces.PagoService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;

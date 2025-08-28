@@ -1,4 +1,4 @@
-package uniquindio.product.model;
+package uniquindio.product.model.vo;
 
 import jakarta.persistence.*;
 import lombok.Getter;

@@ -1,7 +1,7 @@
 package uniquindio.product.services.implementations;
 
 import uniquindio.product.enums.TipoProducto;
-import uniquindio.product.model.Producto;
+import uniquindio.product.model.documents.Producto;
 
 import uniquindio.product.repositories.ProductoRepository;
 import uniquindio.product.services.interfaces.ProductoService;

@@ -1,9 +1,9 @@
-package uniquindio.product.model;
+package uniquindio.product.model.documents;
 
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
-import uniquindio.product.enums.EstadoOrdenCompra;
+import uniquindio.product.enums.FormaPago;
 
 @Getter
 @Setter
@@ -23,11 +23,13 @@ public class OrdenCompra {
 
     @Enumerated(EnumType.STRING)
     @Column(name = "estado_orden_de_compra")
-    private EstadoOrdenCompra estadoOrdenCompra;
+    private FormaPago estadoOrdenCompra;
 
     @Embedded
     private Pedido pedido;
 
     @Column(name = "costo_total")
     private Double costoTotal;
+
+
 }

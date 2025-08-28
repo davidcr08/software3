@@ -1,4 +1,4 @@
-package uniquindio.product.model;
+package uniquindio.product.model.vo;
 
 import jakarta.persistence.*;
 import lombok.Getter;
@@ -35,4 +35,9 @@ public class Pago {
 
     @Column(name = "estado")
     private String estado;
+
+    @Column(name = "metodoPago")
+    private String metodoPago;
+
+
 }

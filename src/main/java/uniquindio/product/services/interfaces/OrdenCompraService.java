@@ -1,6 +1,6 @@
 package uniquindio.product.services.interfaces;
 
-import uniquindio.product.model.OrdenCompra;
+import uniquindio.product.model.documents.OrdenCompra;
 import java.util.List;
 import java.util.Optional;
 
