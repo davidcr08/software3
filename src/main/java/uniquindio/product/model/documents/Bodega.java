@@ -58,4 +58,5 @@ public class Bodega {
             inverseJoinColumns = @JoinColumn(name = "producto_id", referencedColumnName = "idProducto")
     )
     private ArrayList<Producto> inventario = new ArrayList<>();
+
 }

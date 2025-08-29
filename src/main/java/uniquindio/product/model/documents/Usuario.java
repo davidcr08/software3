@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 import uniquindio.product.enums.EstadoCuenta;
+import uniquindio.product.enums.Rol;
 
 @Getter
 @Setter
@@ -35,6 +36,9 @@ public class Usuario {
 
     @Column(name = "contrasena")
     private String contrasena;
+
+    @Column(name = "rol")
+    private Rol rol;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "estadoCuenta")
