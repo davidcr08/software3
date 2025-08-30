@@ -1,10 +1,13 @@
 package uniquindio.product.services.implementations;
 
 import uniquindio.product.dto.pedido.*;
+import uniquindio.product.exceptions.PedidoException;
+import uniquindio.product.exceptions.ProductoException;
 import uniquindio.product.model.documents.Carrito;
 import uniquindio.product.model.documents.Pedido;
 import uniquindio.product.model.documents.Producto;
 import uniquindio.product.model.vo.DetallePedido;
+import uniquindio.product.exceptions.CarritoException;
 import uniquindio.product.repositories.CarritoRepository;
 import uniquindio.product.repositories.PedidoRepository;
 import uniquindio.product.repositories.ProductoRepository;
@@ -28,22 +31,21 @@ public class PedidoServiceImpl implements PedidoService {
     private final ProductoRepository productoRepository;
 
     @Override
-    public Pedido crearPedidoDesdeCarrito(String idCliente, String codigoPasarela) {
+    public Pedido crearPedidoDesdeCarrito(String idCliente, String codigoPasarela) throws CarritoException, ProductoException, PedidoException {
         Carrito carrito = carritoRepository.findByIdUsuario(idCliente)
-                .orElseThrow(() -> new RuntimeException("No se encontró el carrito para el usuario con ID: " + idCliente));
+                .orElseThrow(() -> new CarritoException("No se encontró el carrito para el usuario con ID: " + idCliente));
 
         if (carrito.getItems().isEmpty()) {
-            throw new RuntimeException("El carrito debe tener al menos un producto.");
+            throw new CarritoException("El carrito debe tener al menos un producto.");
         }
-        List<DetallePedidoDTO> detallesPedidoDTO = convertirCarritoADetallePedidoDTO(carrito.getItems());
 
+        List<DetallePedidoDTO> detallesPedidoDTO = convertirCarritoADetallePedidoDTO(carrito.getItems());
 
         CrearPedidoDTO pedidoDTO = new CrearPedidoDTO(
                 idCliente,
                 codigoPasarela,
                 detallesPedidoDTO
         );
-
 
         Pedido pedido = crearPedido(pedidoDTO);
 
@@ -54,10 +56,11 @@ public class PedidoServiceImpl implements PedidoService {
         return pedido;
     }
 
+
     @Override
-    public Pedido crearPedido(CrearPedidoDTO pedidoDTO) {
+    public Pedido crearPedido(CrearPedidoDTO pedidoDTO) throws ProductoException, PedidoException {
         if (pedidoDTO.detallePedido().isEmpty()) {
-            throw new RuntimeException("El pedido debe tener al menos un detalle.");
+            throw new PedidoException("El pedido debe tener al menos un detalle.");
         }
 
         Pedido pedido = new Pedido();
@@ -65,17 +68,15 @@ public class PedidoServiceImpl implements PedidoService {
         pedido.setCodigoPasarela(pedidoDTO.codigoPasarela());
         pedido.setFecha(LocalDate.now());
 
-
         List<DetallePedido> detallesPedido = new ArrayList<>();
         Double total = 0.0;
 
         for (DetallePedidoDTO dto : pedidoDTO.detallePedido()) {
             Producto producto = productoRepository.findById(dto.idProducto())
-                    .orElseThrow(() -> new RuntimeException("Producto no encontrado: " + dto.idProducto()));
-
+                    .orElseThrow(() -> new ProductoException("Producto no encontrado: " + dto.idProducto()));
 
             if (producto.getCantidad() < dto.cantidad()) {
-                throw new RuntimeException("Stock insuficiente para el producto: " + dto.idProducto());
+                throw new ProductoException("Stock insuficiente para el producto: " + dto.idProducto());
             }
 
             // Actualizar stock
@@ -100,14 +101,14 @@ public class PedidoServiceImpl implements PedidoService {
     }
 
     @Override
-    public MostrarPedidoDTO mostrarPedido(String idPedido) {
+    public MostrarPedidoDTO mostrarPedido(String idPedido) throws ProductoException, PedidoException {
         Pedido pedido = obtenerPedidoPorId(idPedido);
 
         List<MostrarDetallePedidoDTO> detalles = new ArrayList<>();
 
         for (DetallePedido detalle : pedido.getDetalle()) {
             Producto producto = productoRepository.findById(detalle.getIdProducto())
-                    .orElseThrow(() -> new RuntimeException("Producto no encontrado: " + detalle.getIdProducto()));
+                    .orElseThrow(() -> new ProductoException("Producto no encontrado: " + detalle.getIdProducto()));
 
             Double subtotal = detalle.getPrecioUnitario() * detalle.getCantidad();
 
@@ -132,13 +133,13 @@ public class PedidoServiceImpl implements PedidoService {
     }
 
     @Override
-    public Pedido obtenerPedidoPorId(String id) {
+    public Pedido obtenerPedidoPorId(String id) throws PedidoException {
         return pedidoRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("No se encontró el pedido con ID: " + id));
+                .orElseThrow(() -> new PedidoException("No se encontró el pedido con ID: " + id));
     }
 
     @Override
-    public List<PedidoResponseDTO> obtenerPedidosPorCliente(String idCliente) {
+    public List<PedidoResponseDTO> obtenerPedidosPorCliente(String idCliente) throws ProductoException {
         List<Pedido> pedidos = pedidoRepository.findByIdCliente(idCliente);
         List<PedidoResponseDTO> response = new ArrayList<>();
 
@@ -147,7 +148,7 @@ public class PedidoServiceImpl implements PedidoService {
 
             for (DetallePedido detalle : pedido.getDetalle()) {
                 Producto producto = productoRepository.findById(detalle.getIdProducto())
-                        .orElseThrow(() -> new RuntimeException("Producto no encontrado"));
+                        .orElseThrow(() -> new ProductoException("Producto no encontrado: " + detalle.getIdProducto()));
 
                 Double subtotal = detalle.getPrecioUnitario() * detalle.getCantidad();
 
@@ -175,9 +176,9 @@ public class PedidoServiceImpl implements PedidoService {
     }
 
     @Override
-    public void eliminarPedido(String id) {
+    public void eliminarPedido(String id) throws PedidoException {
         if (!pedidoRepository.existsById(id)) {
-            throw new RuntimeException("No se encontró el pedido con ID: " + id);
+            throw new PedidoException("No se encontró el pedido con ID: " + id);
         }
         pedidoRepository.deleteById(id);
     }

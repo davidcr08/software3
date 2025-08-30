@@ -1,5 +1,6 @@
 package uniquindio.product.controllers;
 
+import uniquindio.product.exceptions.UsuarioException;
 import uniquindio.product.model.documents.Usuario;
 import uniquindio.product.services.interfaces.UsuarioService;
 import lombok.RequiredArgsConstructor;
@@ -19,7 +20,7 @@ public class UsuarioController {
         try {
             Usuario usuarioCreado = usuarioService.crearusuario(usuario);
             return ResponseEntity.ok(usuarioCreado);
-        } catch (RuntimeException e) {
+        } catch (RuntimeException | UsuarioException e) {
             return ResponseEntity.badRequest().body(null);
         }
     }
@@ -30,7 +31,7 @@ public class UsuarioController {
             return usuarioService.obtenerusuario(id)
                     .map(ResponseEntity::ok)
                     .orElse(ResponseEntity.notFound().build());
-        } catch (RuntimeException e) {
+        } catch (RuntimeException | UsuarioException e) {
             return ResponseEntity.badRequest().body(null);
         }
     }
@@ -41,7 +42,7 @@ public class UsuarioController {
             return usuarioService.obtenerusuarioPorCedula(cedula)
                     .map(ResponseEntity::ok)
                     .orElse(ResponseEntity.notFound().build());
-        } catch (RuntimeException e) {
+        } catch (RuntimeException | UsuarioException e) {
             return ResponseEntity.badRequest().body(null);
         }
     }
@@ -52,7 +53,7 @@ public class UsuarioController {
             return usuarioService.obtenerusuarioPorEmail(email)
                     .map(ResponseEntity::ok)
                     .orElse(ResponseEntity.notFound().build());
-        } catch (RuntimeException e) {
+        } catch (RuntimeException | UsuarioException e) {
             return ResponseEntity.badRequest().body(null);
         }
     }
@@ -62,7 +63,7 @@ public class UsuarioController {
         try {
             Usuario usuarioActualizado = usuarioService.actualizarusuario(usuario);
             return ResponseEntity.ok(usuarioActualizado);
-        } catch (RuntimeException e) {
+        } catch (RuntimeException | UsuarioException e) {
             return ResponseEntity.badRequest().body(null);
         }
     }
@@ -72,7 +73,7 @@ public class UsuarioController {
         try {
             usuarioService.eliminarusuario(id);
             return ResponseEntity.ok().build();
-        } catch (RuntimeException e) {
+        } catch (RuntimeException | UsuarioException e) {
             return ResponseEntity.badRequest().build();
         }
     }
