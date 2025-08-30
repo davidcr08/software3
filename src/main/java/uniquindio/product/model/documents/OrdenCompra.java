@@ -25,8 +25,6 @@ public class OrdenCompra {
     @Column(name = "estado_orden_de_compra")
     private FormaPago estadoOrdenCompra;
 
-    @Embedded
-    private Pedido pedido;
 
     @Column(name = "costo_total")
     private Double costoTotal;
