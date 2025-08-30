@@ -1,4 +1,4 @@
-package uniquindio.product.dto.cuenta;
+package uniquindio.product.dto.usuario;
 
 import jakarta.validation.constraints.NotBlank;
 import org.hibernate.validator.constraints.Length;

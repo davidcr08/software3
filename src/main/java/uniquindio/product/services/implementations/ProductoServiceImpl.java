@@ -1,14 +1,20 @@
 package uniquindio.product.services.implementations;
 
+import uniquindio.product.dto.producto.CrearProductoDTO;
+import uniquindio.product.dto.producto.EditarProductoDTO;
+import uniquindio.product.dto.producto.ItemProductoDTO;
+import uniquindio.product.dto.producto.ProductoDetalleDTO;
 import uniquindio.product.enums.TipoProducto;
 import uniquindio.product.model.documents.Producto;
-
 import uniquindio.product.repositories.ProductoRepository;
 import uniquindio.product.services.interfaces.ProductoService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
+
+import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -17,39 +23,45 @@ public class ProductoServiceImpl implements ProductoService {
     private final ProductoRepository productoRepository;
 
     @Override
-    public Producto crearProducto(Producto producto) {
-        return productoRepository.save(producto);
+    public ProductoDetalleDTO crearProducto(CrearProductoDTO productoDTO) {
+        Producto producto = new Producto();
+        producto.setImagenProducto(productoDTO.imagenProducto());
+        producto.setCantidad(productoDTO.cantidad());
+        producto.setValor(productoDTO.valor());
+        producto.setTipo(productoDTO.tipo());
+        producto.setUltimaFechaModificacion(LocalDateTime.now());
+
+        Producto productoGuardado = productoRepository.save(producto);
+        return convertirAProductoDetalleDTO(productoGuardado);
     }
 
     @Override
-    public Optional<Producto> obtenerProducto(String id) {
-        if (!productoRepository.existsById(id)) {
-            throw new RuntimeException("No existe un producto con ese ID");
-        }
-        return productoRepository.findById(id);
+    public ProductoDetalleDTO obtenerProducto(String id) {
+        Producto producto = productoRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("No existe un producto con ese ID"));
+        return convertirAProductoDetalleDTO(producto);
     }
 
     @Override
-    public List<Producto> obtenerProductosPorTipo(TipoProducto tipo) {
-        return productoRepository.findByTipo(tipo);
+    public List<ItemProductoDTO> obtenerProductosPorTipo(TipoProducto tipo) {
+        return productoRepository.findByTipo(tipo).stream()
+                .map(this::convertirAItemProductoDTO)
+                .collect(Collectors.toList());
     }
 
     @Override
-    public List<Producto> obtenerProductosConValorMayorA(Double valorMinimo) {
-        return productoRepository.findByValorGreaterThan(valorMinimo);
-    }
+    public ProductoDetalleDTO actualizarProducto(String id, EditarProductoDTO productoDTO) {
+        Producto producto = productoRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("No existe un producto con ese ID"));
 
-    @Override
-    public List<Producto> obtenerProductosConValorMenorA(Double valorMaximo) {
-        return productoRepository.findByValorLessThan(valorMaximo);
-    }
+        producto.setImagenProducto(productoDTO.imagenProducto());
+        producto.setCantidad(productoDTO.cantidad());
+        producto.setValor(productoDTO.valor());
+        producto.setTipo(productoDTO.tipo());
+        producto.setUltimaFechaModificacion(LocalDateTime.now());
 
-    @Override
-    public Producto actualizarProducto(Producto producto) {
-        if (!productoRepository.existsById(producto.getIdProducto())) {
-            throw new RuntimeException("No existe un producto con ese ID");
-        }
-        return productoRepository.save(producto);
+        Producto productoActualizado = productoRepository.save(producto);
+        return convertirAProductoDetalleDTO(productoActualizado);
     }
 
     @Override
@@ -61,7 +73,31 @@ public class ProductoServiceImpl implements ProductoService {
     }
 
     @Override
-    public List<Producto> listarProductos() {
-        return productoRepository.findAll();
+    public List<ItemProductoDTO> listarProductos() {
+        return productoRepository.findAll().stream()
+                .map(this::convertirAItemProductoDTO)
+                .collect(Collectors.toList());
     }
+
+    private ItemProductoDTO convertirAItemProductoDTO(Producto producto) {
+        return new ItemProductoDTO(
+                producto.getIdProducto(),
+                producto.getImagenProducto(),
+                producto.getCantidad(),
+                producto.getValor(),
+                producto.getTipo()
+        );
+    }
+
+    private ProductoDetalleDTO convertirAProductoDetalleDTO(Producto producto) {
+        return new ProductoDetalleDTO(
+                producto.getIdProducto(),
+                producto.getImagenProducto(),
+                producto.getCantidad(),
+                producto.getUltimaFechaModificacion(),
+                producto.getValor(),
+                producto.getTipo()
+        );
+    }
+
 }
