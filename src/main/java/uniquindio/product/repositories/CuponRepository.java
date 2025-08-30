@@ -8,7 +8,7 @@ import org.springframework.stereotype.Repository;
 
 import uniquindio.product.enums.EstadoCupon;
 import uniquindio.product.enums.TipoCupon;
-import uniquindio.product.model.Cupon;
+import uniquindio.product.model.documents.Cupon;
 
 /**
  * Repositorio JPA para la entidad {@link Cupon}.

@@ -5,7 +5,7 @@ import java.util.Optional;
 
 import uniquindio.product.enums.EstadoCupon;
 import uniquindio.product.enums.TipoCupon;
-import uniquindio.product.model.Cupon;
+import uniquindio.product.model.documents.Cupon;
 
 /**
  * Define las operaciones del dominio para gestionar entidades de tipo {@link Cupon}.

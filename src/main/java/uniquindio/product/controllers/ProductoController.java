@@ -1,11 +1,17 @@
 package uniquindio.product.controllers;
 
+import uniquindio.product.dto.producto.CrearProductoDTO;
+import uniquindio.product.dto.producto.EditarProductoDTO;
+import uniquindio.product.dto.producto.ItemProductoDTO;
+import uniquindio.product.dto.producto.ProductoDetalleDTO;
 import uniquindio.product.enums.TipoProducto;
-import uniquindio.product.model.Producto;
+import uniquindio.product.exceptions.ProductoException;
 import uniquindio.product.services.interfaces.ProductoService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
 import java.util.List;
 
 @RestController
@@ -16,83 +22,35 @@ public class ProductoController {
     private final ProductoService productoService;
 
     @PostMapping
-    public ResponseEntity<Producto> crearProducto(@RequestBody Producto producto) {
-        try {
-            Producto productoCreado = productoService.crearProducto(producto);
-            return ResponseEntity.ok(productoCreado);
-        } catch (RuntimeException e) {
-            return ResponseEntity.badRequest().body(null);
-        }
+    public ResponseEntity<ProductoDetalleDTO> crearProducto(@Valid @RequestBody CrearProductoDTO productoDTO) {
+        return ResponseEntity.ok(productoService.crearProducto(productoDTO));
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Producto> obtenerProducto(@PathVariable String id) {
-        try {
-            return productoService.obtenerProducto(id)
-                    .map(ResponseEntity::ok)
-                    .orElse(ResponseEntity.notFound().build());
-        } catch (RuntimeException e) {
-            return ResponseEntity.badRequest().body(null);
-        }
+    public ResponseEntity<ProductoDetalleDTO> obtenerProducto(@PathVariable String id) throws ProductoException {
+        return ResponseEntity.ok(productoService.obtenerProducto(id));
     }
 
-    @GetMapping("/tipo/{tipo}")
-    public ResponseEntity<List<Producto>> obtenerProductosPorTipo(@PathVariable TipoProducto tipo) {
-        try {
-            List<Producto> productos = productoService.obtenerProductosPorTipo(tipo);
-            return ResponseEntity.ok(productos);
-        } catch (RuntimeException e) {
-            return ResponseEntity.badRequest().body(null);
-        }
-    }
-
-    @GetMapping("/valor-mayor/{valorMinimo}")
-    public ResponseEntity<List<Producto>> obtenerProductosConValorMayorA(@PathVariable Double valorMinimo) {
-        try {
-            List<Producto> productos = productoService.obtenerProductosConValorMayorA(valorMinimo);
-            return ResponseEntity.ok(productos);
-        } catch (RuntimeException e) {
-            return ResponseEntity.badRequest().body(null);
-        }
-    }
-
-    @GetMapping("/valor-menor/{valorMaximo}")
-    public ResponseEntity<List<Producto>> obtenerProductosConValorMenorA(@PathVariable Double valorMaximo) {
-        try {
-            List<Producto> productos = productoService.obtenerProductosConValorMenorA(valorMaximo);
-            return ResponseEntity.ok(productos);
-        } catch (RuntimeException e) {
-            return ResponseEntity.badRequest().body(null);
-        }
-    }
-
-    @PutMapping
-    public ResponseEntity<Producto> actualizarProducto(@RequestBody Producto producto) {
-        try {
-            Producto productoActualizado = productoService.actualizarProducto(producto);
-            return ResponseEntity.ok(productoActualizado);
-        } catch (RuntimeException e) {
-            return ResponseEntity.badRequest().body(null);
-        }
+    @PutMapping("/{id}")
+    public ResponseEntity<ProductoDetalleDTO> actualizarProducto(
+            @PathVariable String id,
+            @Valid @RequestBody EditarProductoDTO productoDTO) throws ProductoException {
+        return ResponseEntity.ok(productoService.actualizarProducto(id, productoDTO));
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> eliminarProducto(@PathVariable String id) {
-        try {
-            productoService.eliminarProducto(id);
-            return ResponseEntity.ok().build();
-        } catch (RuntimeException e) {
-            return ResponseEntity.badRequest().build();
-        }
+    public ResponseEntity<Void> eliminarProducto(@PathVariable String id) throws ProductoException {
+        productoService.eliminarProducto(id);
+        return ResponseEntity.noContent().build();
     }
 
     @GetMapping
-    public ResponseEntity<List<Producto>> listarProductos() {
-        try {
-            List<Producto> productos = productoService.listarProductos();
-            return ResponseEntity.ok(productos);
-        } catch (RuntimeException e) {
-            return ResponseEntity.badRequest().body(null);
-        }
+    public ResponseEntity<List<ItemProductoDTO>> listarProductos() {
+        return ResponseEntity.ok(productoService.listarProductos());
+    }
+
+    @GetMapping("/tipo/{tipo}")
+    public ResponseEntity<List<ItemProductoDTO>> obtenerProductosPorTipo(@PathVariable TipoProducto tipo) {
+        return ResponseEntity.ok(productoService.obtenerProductosPorTipo(tipo));
     }
 }

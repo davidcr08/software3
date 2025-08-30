@@ -1,17 +1,21 @@
 package uniquindio.product.services.interfaces;
 
+import uniquindio.product.dto.producto.CrearProductoDTO;
+import uniquindio.product.dto.producto.EditarProductoDTO;
+import uniquindio.product.dto.producto.ItemProductoDTO;
+import uniquindio.product.dto.producto.ProductoDetalleDTO;
+
 import uniquindio.product.enums.TipoProducto;
-import uniquindio.product.model.Producto;
+import uniquindio.product.exceptions.ProductoException;
+
 import java.util.List;
-import java.util.Optional;
 
 public interface ProductoService {
-    Producto crearProducto(Producto producto);
-    Optional<Producto> obtenerProducto(String id);
-    List<Producto> obtenerProductosPorTipo(TipoProducto tipo);
-    List<Producto> obtenerProductosConValorMayorA(Double valorMinimo);
-    List<Producto> obtenerProductosConValorMenorA(Double valorMaximo);
-    Producto actualizarProducto(Producto producto);
-    void eliminarProducto(String id);
-    List<Producto> listarProductos();
+
+    ProductoDetalleDTO crearProducto(CrearProductoDTO productoDTO);
+    ProductoDetalleDTO obtenerProducto(String id) throws ProductoException;
+    List<ItemProductoDTO> obtenerProductosPorTipo(TipoProducto tipo);
+    ProductoDetalleDTO actualizarProducto(String id, EditarProductoDTO productoDTO) throws ProductoException;
+    void eliminarProducto(String id) throws ProductoException;
+    List<ItemProductoDTO> listarProductos();
 }

@@ -3,7 +3,7 @@ package uniquindio.product.services.interfaces;
 import java.util.List;
 import java.util.Optional;
 
-import uniquindio.product.model.Bodega;
+import uniquindio.product.model.documents.Bodega;
 
 /**
  * Define las operaciones del dominio para gestionar entidades de tipo {@link Bodega}.

@@ -1,6 +1,6 @@
 package uniquindio.product.repositories;
 
-import uniquindio.product.model.GuiaEntrega;
+import uniquindio.product.model.documents.GuiaEntrega;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 import java.util.List;

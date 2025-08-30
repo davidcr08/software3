@@ -1,6 +1,6 @@
 package uniquindio.product.services.interfaces;
 
-import uniquindio.product.model.CodigoValidacion;
+import uniquindio.product.model.vo.CodigoValidacion;
 import java.util.Optional;
 
 public interface CodigoValidacionService {

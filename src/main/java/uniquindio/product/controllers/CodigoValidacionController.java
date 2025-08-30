@@ -1,11 +1,10 @@
 package uniquindio.product.controllers;
 
-import uniquindio.product.model.CodigoValidacion;
+import uniquindio.product.model.vo.CodigoValidacion;
 import uniquindio.product.services.interfaces.CodigoValidacionService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/codigos-validacion")

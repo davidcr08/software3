@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import lombok.RequiredArgsConstructor;
-import uniquindio.product.model.Bodega;
+import uniquindio.product.model.documents.Bodega;
 import uniquindio.product.services.interfaces.BodegaService;
 
 /**

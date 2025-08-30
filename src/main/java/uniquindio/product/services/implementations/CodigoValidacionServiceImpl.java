@@ -1,6 +1,6 @@
 package uniquindio.product.services.implementations;
 
-import uniquindio.product.model.CodigoValidacion;
+import uniquindio.product.model.vo.CodigoValidacion;
 import uniquindio.product.repositories.CodigoValidacionRepository;
 import uniquindio.product.services.interfaces.CodigoValidacionService;
 import lombok.RequiredArgsConstructor;

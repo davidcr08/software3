@@ -6,7 +6,7 @@ import java.util.Optional;
 import org.springframework.stereotype.Service;
 
 import lombok.RequiredArgsConstructor;
-import uniquindio.product.model.Bodega;
+import uniquindio.product.model.documents.Bodega;
 import uniquindio.product.repositories.BodegaRepository;
 import uniquindio.product.services.interfaces.BodegaService;
 
