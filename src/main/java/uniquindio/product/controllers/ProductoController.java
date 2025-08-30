@@ -5,6 +5,7 @@ import uniquindio.product.dto.producto.EditarProductoDTO;
 import uniquindio.product.dto.producto.ItemProductoDTO;
 import uniquindio.product.dto.producto.ProductoDetalleDTO;
 import uniquindio.product.enums.TipoProducto;
+import uniquindio.product.exceptions.ProductoException;
 import uniquindio.product.services.interfaces.ProductoService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -26,19 +27,19 @@ public class ProductoController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<ProductoDetalleDTO> obtenerProducto(@PathVariable String id) {
+    public ResponseEntity<ProductoDetalleDTO> obtenerProducto(@PathVariable String id) throws ProductoException {
         return ResponseEntity.ok(productoService.obtenerProducto(id));
     }
 
     @PutMapping("/{id}")
     public ResponseEntity<ProductoDetalleDTO> actualizarProducto(
             @PathVariable String id,
-            @Valid @RequestBody EditarProductoDTO productoDTO) {
+            @Valid @RequestBody EditarProductoDTO productoDTO) throws ProductoException {
         return ResponseEntity.ok(productoService.actualizarProducto(id, productoDTO));
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> eliminarProducto(@PathVariable String id) {
+    public ResponseEntity<Void> eliminarProducto(@PathVariable String id) throws ProductoException {
         productoService.eliminarProducto(id);
         return ResponseEntity.noContent().build();
     }
