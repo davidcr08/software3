@@ -33,10 +33,16 @@ public class CarritoServiceImpl implements CarritoService {
 
         Carrito carrito = new Carrito();
         carrito.setIdUsuario(carritoDTO.idUsuario());
-        carrito.setItems(convertirItemsDTOAItems(carritoDTO.itemsCarrito()));
+
+        // Convertir y agregar items uno por uno
+        List<DetalleCarrito> items = convertirItemsDTOAItems(carritoDTO.itemsCarrito());
+        for (DetalleCarrito item : items) {
+            carrito.agregarItem(item);
+        }
 
         carritoRepository.save(carrito);
     }
+
 
     @Override
     public Carrito obtenerCarritoPorUsuario(String idUsuario) throws CarritoException {
@@ -63,12 +69,13 @@ public class CarritoServiceImpl implements CarritoService {
                 DetalleCarrito existente = itemExistente.get();
                 existente.setCantidad(existente.getCantidad() + nuevoItem.getCantidad());
             } else {
-                // Agregar nuevo item
-                carrito.getItems().add(nuevoItem);
+                // Agregar nuevo item usando el método helper
+                carrito.agregarItem(nuevoItem);
             }
         }
 
-        return carritoRepository.save(carrito);
+        // Guardar explícitamente
+        return carritoRepository.saveAndFlush(carrito);
     }
 
     @Override

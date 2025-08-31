@@ -58,7 +58,8 @@ public class PedidoController {
                 pedido.getIdCliente(),
                 pedido.getFecha(),
                 pedido.getTotal(),
-                detalles
+                detalles,
+                pedido.getPago()
         );
     }
 }

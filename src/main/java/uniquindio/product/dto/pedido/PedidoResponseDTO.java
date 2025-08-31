@@ -1,5 +1,7 @@
 package uniquindio.product.dto.pedido;
 
+import uniquindio.product.model.vo.Pago;
+
 import java.time.LocalDate;
 import java.util.List;
 
@@ -8,5 +10,6 @@ public record PedidoResponseDTO(
         String idCliente,
         LocalDate fecha,
         Double total,
-        List<MostrarDetallePedidoDTO> detalles
+        List<MostrarDetallePedidoDTO> detalles,
+        Pago pago
 ) {}

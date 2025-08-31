@@ -4,6 +4,8 @@ import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
 import org.hibernate.validator.constraints.Length;
+import uniquindio.product.enums.EstadoCuenta;
+import uniquindio.product.enums.Rol;
 
 public record CrearUsuarioDTO(
         @NotBlank(message = "La cédula es requerida")
@@ -28,4 +30,6 @@ public record CrearUsuarioDTO(
         @NotBlank(message = "La contraseña es requerida")
         @Length(min = 7, max = 20, message = "La contraseña debe tener un mínimo de 7 caracteres y un máximo de 20 caracteres")
         String contrasenia
+
+
 ) {}

@@ -1,13 +1,17 @@
 package uniquindio.product.services.implementations;
 
 import uniquindio.product.dto.pedido.*;
+import uniquindio.product.enums.EstadoPago;
+import uniquindio.product.enums.TipoPago;
 import uniquindio.product.exceptions.PedidoException;
 import uniquindio.product.exceptions.ProductoException;
 import uniquindio.product.model.documents.Carrito;
 import uniquindio.product.model.documents.Pedido;
 import uniquindio.product.model.documents.Producto;
+import uniquindio.product.enums.Moneda;
 import uniquindio.product.model.vo.DetallePedido;
 import uniquindio.product.exceptions.CarritoException;
+import uniquindio.product.model.vo.Pago;
 import uniquindio.product.repositories.CarritoRepository;
 import uniquindio.product.repositories.PedidoRepository;
 import uniquindio.product.repositories.ProductoRepository;
@@ -17,6 +21,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -41,10 +46,25 @@ public class PedidoServiceImpl implements PedidoService {
 
         List<DetallePedidoDTO> detallesPedidoDTO = convertirCarritoADetallePedidoDTO(carrito.getItems());
 
+
+        PagoDTO pagoDTO = new PagoDTO(
+                "PAGO_" + System.currentTimeMillis(),
+                Moneda.COP,
+                TipoPago.TARJETA_CREDITO,
+                "Pendiente de procesar",
+                "AUT_" + System.currentTimeMillis(),
+                LocalDateTime.now(),
+                calcularTotalCarrito(carrito),
+                EstadoPago.PENDIENTE,
+                "Pasarela de pago" // Metodo de pago
+        );
+
         CrearPedidoDTO pedidoDTO = new CrearPedidoDTO(
                 idCliente,
                 codigoPasarela,
-                detallesPedidoDTO
+                LocalDate.now(),
+                detallesPedidoDTO,
+                pagoDTO // Incluir los datos de pago
         );
 
         Pedido pedido = crearPedido(pedidoDTO);
@@ -54,6 +74,16 @@ public class PedidoServiceImpl implements PedidoService {
         carritoRepository.save(carrito);
 
         return pedido;
+    }
+
+    private Double calcularTotalCarrito(Carrito carrito) throws ProductoException {
+        Double total = 0.0;
+        for (uniquindio.product.model.vo.DetalleCarrito item : carrito.getItems()) {
+            Producto producto = productoRepository.findById(item.getIdProducto())
+                    .orElseThrow(() -> new ProductoException("Producto no encontrado: " + item.getIdProducto()));
+            total += producto.getValor() * item.getCantidad();
+        }
+        return total;
     }
 
 
@@ -96,6 +126,22 @@ public class PedidoServiceImpl implements PedidoService {
 
         pedido.setDetalle(detallesPedido);
         pedido.setTotal(total);
+
+        // Configurar los datos de pago
+        if (pedidoDTO.pago() != null) {
+            Pago pago = new Pago();
+            pago.setIdPago(pedidoDTO.pago().idPago());
+            pago.setMoneda(pedidoDTO.pago().moneda());
+            pago.setTipoPago(pedidoDTO.pago().tipoPago());
+            pago.setDetalleEstado(pedidoDTO.pago().detalleEstado());
+            pago.setCodigoAutorizacion(pedidoDTO.pago().codigoAutorizacion());
+            pago.setFecha(pedidoDTO.pago().fecha());
+            pago.setValorTransaccion(pedidoDTO.pago().valorTransaccion());
+            pago.setEstado(pedidoDTO.pago().estado());
+            pago.setMetodoPago(pedidoDTO.pago().metodoPago());
+
+            pedido.setPago(pago);
+        }
 
         return pedidoRepository.save(pedido);
     }
@@ -168,7 +214,8 @@ public class PedidoServiceImpl implements PedidoService {
                     pedido.getIdCliente(),
                     pedido.getFecha(),
                     pedido.getTotal(),
-                    detalles
+                    detalles,
+                    pedido.getPago()
             ));
         }
 
