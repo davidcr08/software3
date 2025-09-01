@@ -1,5 +1,10 @@
 package uniquindio.product.controllers;
 
+import uniquindio.product.dto.usuario.CambiarPasswordDTO;
+import uniquindio.product.dto.usuario.CodigoContraseniaDTO;
+import uniquindio.product.dto.usuario.EditarUsuarioDTO;
+import uniquindio.product.dto.usuario.InformacionUsuarioDTO;
+import uniquindio.product.exceptions.UsuarioException;
 import uniquindio.product.model.documents.Usuario;
 import uniquindio.product.services.interfaces.UsuarioService;
 import lombok.RequiredArgsConstructor;
@@ -17,20 +22,57 @@ public class UsuarioController {
     @PostMapping
     public ResponseEntity<Usuario> crearusuario(@RequestBody Usuario usuario) {
         try {
-            Usuario usuarioCreado = usuarioService.crearusuario(usuario);
+            Usuario usuarioCreado = usuarioService.crearUsuario(usuario);
             return ResponseEntity.ok(usuarioCreado);
-        } catch (RuntimeException e) {
+        } catch (RuntimeException | UsuarioException e) {
             return ResponseEntity.badRequest().body(null);
+        }
+    }
+    @GetMapping("/informacion/{id}")
+    public ResponseEntity<InformacionUsuarioDTO> obtenerInformacionUsuario(@PathVariable String id) {
+        try {
+            InformacionUsuarioDTO informacion = usuarioService.obtenerInformacionUsuario(id);
+            return ResponseEntity.ok(informacion);
+        } catch (UsuarioException e) {
+            return ResponseEntity.badRequest().body(null);
+        }
+    }
+    @PutMapping("/editar")
+    public ResponseEntity<Void> editarUsuario(@RequestBody EditarUsuarioDTO usuarioDTO) {
+        try {
+            usuarioService.editarUsuario(usuarioDTO);
+            return ResponseEntity.ok().build();
+        } catch (UsuarioException e) {
+            return ResponseEntity.badRequest().build();
+        }
+    }
+    @PostMapping("/recuperar-password")
+    public ResponseEntity<Void> enviarCodigoRecuperacion(@RequestBody CodigoContraseniaDTO codigoDTO) {
+        try {
+            usuarioService.enviarCodigoRecuperacionPassword(codigoDTO);
+            return ResponseEntity.ok().build();
+        } catch (UsuarioException e) {
+            return ResponseEntity.badRequest().build();
+        }
+    }
+
+    @PostMapping("/cambiar-password")
+    public ResponseEntity<Void> cambiarPassword(@RequestBody CambiarPasswordDTO cambiarPasswordDTO) {
+        try {
+            usuarioService.cambiarPassword(cambiarPasswordDTO);
+            return ResponseEntity.ok().build();
+        } catch (UsuarioException e) {
+            return ResponseEntity.badRequest().build();
         }
     }
 
     @GetMapping("/{id}")
     public ResponseEntity<Usuario> obtenerusuario(@PathVariable String id) {
         try {
-            return usuarioService.obtenerusuario(id)
+            return usuarioService.obtenerUsuario(id)
                     .map(ResponseEntity::ok)
                     .orElse(ResponseEntity.notFound().build());
-        } catch (RuntimeException e) {
+        } catch (RuntimeException | UsuarioException e) {
             return ResponseEntity.badRequest().body(null);
         }
     }
@@ -38,10 +80,10 @@ public class UsuarioController {
     @GetMapping("/cedula/{cedula}")
     public ResponseEntity<Usuario> obtenerusuarioPorCedula(@PathVariable String cedula) {
         try {
-            return usuarioService.obtenerusuarioPorCedula(cedula)
+            return usuarioService.obtenerUsuarioPorCedula(cedula)
                     .map(ResponseEntity::ok)
                     .orElse(ResponseEntity.notFound().build());
-        } catch (RuntimeException e) {
+        } catch (RuntimeException | UsuarioException e) {
             return ResponseEntity.badRequest().body(null);
         }
     }
@@ -49,10 +91,10 @@ public class UsuarioController {
     @GetMapping("/email/{email}")
     public ResponseEntity<Usuario> obtenerusuarioPorEmail(@PathVariable String email) {
         try {
-            return usuarioService.obtenerusuarioPorEmail(email)
+            return usuarioService.obtenerUsuarioPorEmail(email)
                     .map(ResponseEntity::ok)
                     .orElse(ResponseEntity.notFound().build());
-        } catch (RuntimeException e) {
+        } catch (RuntimeException | UsuarioException e) {
             return ResponseEntity.badRequest().body(null);
         }
     }
@@ -60,9 +102,9 @@ public class UsuarioController {
     @PutMapping
     public ResponseEntity<Usuario> actualizarusuario(@RequestBody Usuario usuario) {
         try {
-            Usuario usuarioActualizado = usuarioService.actualizarusuario(usuario);
+            Usuario usuarioActualizado = usuarioService.actualizarUsuario(usuario);
             return ResponseEntity.ok(usuarioActualizado);
-        } catch (RuntimeException e) {
+        } catch (RuntimeException | UsuarioException e) {
             return ResponseEntity.badRequest().body(null);
         }
     }
@@ -70,9 +112,9 @@ public class UsuarioController {
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> eliminarusuario(@PathVariable String id) {
         try {
-            usuarioService.eliminarusuario(id);
+            usuarioService.eliminarUsuario(id);
             return ResponseEntity.ok().build();
-        } catch (RuntimeException e) {
+        } catch (RuntimeException | UsuarioException e) {
             return ResponseEntity.badRequest().build();
         }
     }
@@ -80,7 +122,7 @@ public class UsuarioController {
     @GetMapping
     public ResponseEntity<List<Usuario>> listarusuarios() {
         try {
-            List<Usuario> usuarios = usuarioService.listarusuarios();
+            List<Usuario> usuarios = usuarioService.listarUsuarios();
             return ResponseEntity.ok(usuarios);
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest().body(null);

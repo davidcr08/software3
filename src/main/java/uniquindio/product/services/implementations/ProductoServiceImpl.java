@@ -5,6 +5,7 @@ import uniquindio.product.dto.producto.EditarProductoDTO;
 import uniquindio.product.dto.producto.ItemProductoDTO;
 import uniquindio.product.dto.producto.ProductoDetalleDTO;
 import uniquindio.product.model.enums.TipoProducto;
+import uniquindio.product.exceptions.ProductoException;
 import uniquindio.product.model.documents.Producto;
 import uniquindio.product.repositories.ProductoRepository;
 import uniquindio.product.services.interfaces.ProductoService;
@@ -35,9 +36,9 @@ public class ProductoServiceImpl implements ProductoService {
     }
 
     @Override
-    public ProductoDetalleDTO obtenerProducto(String id) {
+    public ProductoDetalleDTO obtenerProducto(String id) throws ProductoException {
         Producto producto = productoRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("No existe un producto con ese ID"));
+                .orElseThrow(() -> new ProductoException("No existe un producto con el ID: " + id));
         return convertirAProductoDetalleDTO(producto);
     }
 
@@ -49,9 +50,9 @@ public class ProductoServiceImpl implements ProductoService {
     }
 
     @Override
-    public ProductoDetalleDTO actualizarProducto(String id, EditarProductoDTO productoDTO) {
+    public ProductoDetalleDTO actualizarProducto(String id, EditarProductoDTO productoDTO) throws ProductoException {
         Producto producto = productoRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("No existe un producto con ese ID"));
+                .orElseThrow(() -> new ProductoException("No existe un producto con el ID: " + id));
 
         producto.setImagenProducto(productoDTO.imagenProducto());
         producto.setCantidad(productoDTO.cantidad());
@@ -64,9 +65,9 @@ public class ProductoServiceImpl implements ProductoService {
     }
 
     @Override
-    public void eliminarProducto(String id) {
+    public void eliminarProducto(String id) throws ProductoException {
         if (!productoRepository.existsById(id)) {
-            throw new RuntimeException("No existe un producto con ese ID");
+            throw new ProductoException("No existe un producto con el ID: " + id);
         }
         productoRepository.deleteById(id);
     }
@@ -98,5 +99,4 @@ public class ProductoServiceImpl implements ProductoService {
                 producto.getTipo()
         );
     }
-
 }

@@ -4,6 +4,8 @@ import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
 import org.hibernate.validator.constraints.Length;
+import uniquindio.product.model.enums.EstadoCuenta;
+import uniquindio.product.model.enums.Rol;
 
 public record CrearUsuarioDTO(
         @NotBlank(message = "La cédula es requerida")

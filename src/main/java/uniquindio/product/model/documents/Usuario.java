@@ -6,6 +6,8 @@ import lombok.Setter;
 import uniquindio.product.model.enums.EstadoCuenta;
 import uniquindio.product.model.enums.Rol;
 
+import java.time.LocalDateTime;
+
 @Getter
 @Setter
 @Entity
@@ -37,10 +39,18 @@ public class Usuario {
     @Column(name = "contrasena")
     private String contrasena;
 
+    @Enumerated(EnumType.STRING)
     @Column(name = "rol")
     private Rol rol;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "estadoCuenta")
     private EstadoCuenta estadoCuenta;
+
+    // Campos para recuperación de contraseña
+    @Column(name = "codigo_verificacion_contrasenia")
+    private String codigoVerificacionContrasenia;
+
+    @Column(name = "fecha_expiracion_codigo_contrasenia")
+    private LocalDateTime fechaExpiracionCodigoContrasenia;
 }
