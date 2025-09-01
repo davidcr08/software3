@@ -5,7 +5,7 @@ import uniquindio.product.dto.producto.EditarProductoDTO;
 import uniquindio.product.dto.producto.ItemProductoDTO;
 import uniquindio.product.dto.producto.ProductoDetalleDTO;
 
-import uniquindio.product.enums.TipoProducto;
+import uniquindio.product.model.enums.TipoProducto;
 
 import java.util.List;
 

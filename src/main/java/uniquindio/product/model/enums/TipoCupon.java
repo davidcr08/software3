@@ -1,4 +1,4 @@
-package uniquindio.product.enums;
+package uniquindio.product.model.enums;
 
 /**
  * Tipos de cupón disponibles en el sistema.

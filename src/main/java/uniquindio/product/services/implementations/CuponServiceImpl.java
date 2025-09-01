@@ -7,8 +7,8 @@ import java.util.Optional;
 import org.springframework.stereotype.Service;
 
 import lombok.RequiredArgsConstructor;
-import uniquindio.product.enums.EstadoCupon;
-import uniquindio.product.enums.TipoCupon;
+import uniquindio.product.model.enums.EstadoCupon;
+import uniquindio.product.model.enums.TipoCupon;
 import uniquindio.product.model.documents.Cupon;
 import uniquindio.product.repositories.CuponRepository;
 import uniquindio.product.services.interfaces.CuponService;

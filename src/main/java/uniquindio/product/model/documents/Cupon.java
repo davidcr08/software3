@@ -12,8 +12,8 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import lombok.Getter;
 import lombok.Setter;
-import uniquindio.product.enums.EstadoCupon;
-import uniquindio.product.enums.TipoCupon;
+import uniquindio.product.model.enums.EstadoCupon;
+import uniquindio.product.model.enums.TipoCupon;
 
 /**
  * Entidad JPA que representa un cupón de descuento.

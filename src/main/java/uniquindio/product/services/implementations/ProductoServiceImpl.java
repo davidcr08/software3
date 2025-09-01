@@ -4,12 +4,11 @@ import uniquindio.product.dto.producto.CrearProductoDTO;
 import uniquindio.product.dto.producto.EditarProductoDTO;
 import uniquindio.product.dto.producto.ItemProductoDTO;
 import uniquindio.product.dto.producto.ProductoDetalleDTO;
-import uniquindio.product.enums.TipoProducto;
+import uniquindio.product.model.enums.TipoProducto;
 import uniquindio.product.model.documents.Producto;
 import uniquindio.product.repositories.ProductoRepository;
 import uniquindio.product.services.interfaces.ProductoService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;

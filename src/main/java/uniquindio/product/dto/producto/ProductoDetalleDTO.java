@@ -1,7 +1,7 @@
 package uniquindio.product.dto.producto;
 
 import java.time.LocalDateTime;
-import uniquindio.product.enums.TipoProducto;
+import uniquindio.product.model.enums.TipoProducto;
 
 public record ProductoDetalleDTO(
         String idProducto,

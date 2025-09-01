@@ -1,6 +1,6 @@
 package uniquindio.product.services.implementations;
 
-import uniquindio.product.enums.EstadoCuenta;
+import uniquindio.product.model.enums.EstadoCuenta;
 import uniquindio.product.model.documents.Usuario;
 
 import uniquindio.product.repositories.UsuarioRepository;
