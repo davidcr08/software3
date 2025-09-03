@@ -20,6 +20,7 @@ import java.util.List;
 public class PedidoController {
 
     private final PedidoService pedidoService;
+    private final MercadoPagoController pago;
 
     @PostMapping("/desde-carrito/{idCliente}")
     public ResponseEntity<PedidoResponseDTO> crearPedidoDesdeCarrito(
@@ -53,13 +54,14 @@ public class PedidoController {
         List<MostrarDetallePedidoDTO> detalles = new ArrayList<>();
 
 
+
         return new PedidoResponseDTO(
+
                 pedido.getId(),
                 pedido.getIdCliente(),
                 pedido.getFecha(),
                 pedido.getTotal(),
-                detalles,
-                pedido.getPago()
-        );
+                detalles.stream().toList(),
+                pago.Clientepedido.getPago());
     }
 }
