@@ -77,8 +77,8 @@ public class FiltroToken extends OncePerRequestFilter {
     private boolean validarToken(String token, Rol rol){
         boolean error = true;
         if (token != null) {
-            Jws<Claims> jws = JWTUtils.parseJwt(token);
-            Claims claims = jws.getBody(); // ✅ antes era getPayload()
+            Jws<Claims> jws = jwtUtils.parseJwt(token);
+            Claims claims = jws.getBody();
             if (Rol.valueOf(claims.get("rol").toString()) == rol) {
                 error = false;
             }

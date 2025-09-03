@@ -37,7 +37,7 @@ public class PedidoServiceImpl implements PedidoService {
 
     @Override
     public Pedido crearPedidoDesdeCarrito(String idCliente, String codigoPasarela) throws CarritoException, ProductoException, PedidoException {
-        Carrito carrito = carritoRepository.findByIdUsuario(idCliente)
+        Carrito carrito = carritoRepository.findByUsuarioId(idCliente)
                 .orElseThrow(() -> new CarritoException("No se encontró el carrito para el usuario con ID: " + idCliente));
 
         if (carrito.getItems().isEmpty()) {

@@ -53,4 +53,5 @@ public class Usuario {
 
     @Column(name = "fecha_expiracion_codigo_contrasenia")
     private LocalDateTime fechaExpiracionCodigoContrasenia;
+
 }

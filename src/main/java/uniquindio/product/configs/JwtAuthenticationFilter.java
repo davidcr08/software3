@@ -39,7 +39,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         try {
             // Llama al método estático para parsear el token
-            Jws<Claims> jwsClaims = JWTUtils.parseJwt(token);
+            Jws<Claims> jwsClaims = jwtUtils.parseJwt(token);
 
             Claims claims = jwsClaims.getBody();
 

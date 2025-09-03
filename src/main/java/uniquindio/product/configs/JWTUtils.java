@@ -2,6 +2,9 @@ package uniquindio.product.configs;
 
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
+import lombok.Getter;
+import lombok.Setter;
+import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
 
 import javax.crypto.SecretKey;
@@ -10,9 +13,14 @@ import java.time.temporal.ChronoUnit;
 import java.util.Date;
 import java.util.Map;
 
+@ConfigurationProperties(prefix = "jwt")
 @Component
+@Getter
+@Setter
 public class JWTUtils {
 
+    private String secret;
+    private Long expiration;
     public String generarToken(String email, Map<String, Object> claims) {
 
         Instant now = Instant.now();
@@ -26,7 +34,7 @@ public class JWTUtils {
                 .compact();
     }
 
-    public static Jws<Claims> parseJwt(String jwtString)
+    public Jws<Claims> parseJwt(String jwtString)
             throws ExpiredJwtException, UnsupportedJwtException, MalformedJwtException, IllegalArgumentException {
 
         JwtParser jwtParser = Jwts.parserBuilder()
@@ -36,9 +44,8 @@ public class JWTUtils {
         return jwtParser.parseClaimsJws(jwtString);
     }
 
-    private static SecretKey getKey() {
-        String claveSecreta = "k8A9sFh3Jz7pQ4T1xVbWmR6LkNvU2gC5Yt0qXsEj8PdGhZw1l9Bn3yM2fX0rJkH7";
-        byte[] secretKeyBytes = claveSecreta.getBytes();
+    private SecretKey getKey() {
+        byte[] secretKeyBytes = secret.getBytes();
         return Keys.hmacShaKeyFor(secretKeyBytes);
     }
 }

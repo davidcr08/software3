@@ -4,10 +4,12 @@ import uniquindio.product.dto.carrito.*;
 import uniquindio.product.exceptions.ProductoException;
 import uniquindio.product.model.documents.Carrito;
 import uniquindio.product.model.documents.Producto;
+import uniquindio.product.model.documents.Usuario;
 import uniquindio.product.model.vo.DetalleCarrito;
 import uniquindio.product.exceptions.CarritoException;
 import uniquindio.product.repositories.CarritoRepository;
 import uniquindio.product.repositories.ProductoRepository;
+import uniquindio.product.repositories.UsuarioRepository;
 import uniquindio.product.services.interfaces.CarritoService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -24,15 +26,22 @@ public class CarritoServiceImpl implements CarritoService {
 
     private final CarritoRepository carritoRepository;
     private final ProductoRepository productoRepository;
+    private final UsuarioRepository usuarioRepository;
 
     @Override
     public void crearCarrito(CrearCarritoDTO carritoDTO) throws CarritoException {
-        if (carritoRepository.existsByIdUsuario(carritoDTO.idUsuario())) {
+
+        // Buscar el usuario por ID
+        Usuario usuario = usuarioRepository.findById(carritoDTO.idUsuario())
+                .orElseThrow(() -> new CarritoException("Usuario no encontrado"));
+
+        // Verificar si ya tiene carrito
+        if (carritoRepository.existsByUsuario(usuario)) {
             throw new CarritoException("El usuario ya tiene un carrito creado");
         }
 
         Carrito carrito = new Carrito();
-        carrito.setIdUsuario(carritoDTO.idUsuario());
+        carrito.setUsuario(usuario); // ← Asignar el objeto Usuario completo
 
         // Convertir y agregar items uno por uno
         List<DetalleCarrito> items = convertirItemsDTOAItems(carritoDTO.itemsCarrito());
@@ -46,7 +55,7 @@ public class CarritoServiceImpl implements CarritoService {
 
     @Override
     public Carrito obtenerCarritoPorUsuario(String idUsuario) throws CarritoException {
-        return carritoRepository.findByIdUsuario(idUsuario)
+        return carritoRepository.findByUsuarioId(idUsuario)
                 .orElseThrow(() -> new CarritoException("No se encontró un carrito para el usuario con ID: " + idUsuario));
     }
 
@@ -156,7 +165,7 @@ public class CarritoServiceImpl implements CarritoService {
 
         return new CarritoResponseDTO(
                 carrito.getId(),
-                carrito.getIdUsuario(),
+                carrito.getId(),
                 items,
                 total
         );
