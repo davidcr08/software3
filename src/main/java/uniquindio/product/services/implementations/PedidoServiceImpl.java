@@ -250,10 +250,41 @@ public class PedidoServiceImpl implements PedidoService {
     }
 
 
-    @GetMapping("/mercadopago")
-    public String mercadoPago(String idPedido) throws MPException, MPApiException, PedidoException {
+    public int calcularCantidadProductos(List<DetallePedido> detalles) {
+        int cantidadTotal = 0;
+        for (DetallePedido detalle : detalles) {
+            if (detalle.getCantidad() != null) {
+                cantidadTotal += detalle.getCantidad();
+            }
+        }
+        return cantidadTotal;
+    }
 
+    public BigDecimal valorTotalPedido(List<DetallePedido> detalles) {
+        BigDecimal total = BigDecimal.ZERO;
+
+        for (DetallePedido detalle : detalles) {
+            if (detalle.getCantidad() != null && detalle.getPrecioUnitario() != null) {
+                BigDecimal cantidad = BigDecimal.valueOf(detalle.getCantidad());
+                BigDecimal precio = BigDecimal.valueOf(detalle.getPrecioUnitario());
+                total = total.add(cantidad.multiply(precio));
+            }
+        }
+
+        return total;
+    }
+
+
+
+    @GetMapping("/mercadopago")
+    public String mercadoPago(String idPedido,CarritoRepository carritoRepository) throws MPException, MPApiException, PedidoException {
+
+        //Varibles necesarias
         Pedido pedidoApagar = obtenerPedidoPorId(idPedido);
+        List<DetallePedido> detalle = pedidoApagar.getDetalle();
+        int cantidadProductos= calcularCantidadProductos(detalle);
+
+
 
         // Configurar el token de acceso de MercadoPago (token de prueba)
         MercadoPagoConfig.setAccessToken(
@@ -266,7 +297,7 @@ public class PedidoServiceImpl implements PedidoService {
                 .failure("https://www.tu-sitio/failure") // URL para pagos fallidos
                 .build();
 
-        DetallePedido cantidadProductos= pedidoApagar.getDetalle().
+
         // Crear el item/producto para la preferencia de pago usando parámetros
         PreferenceItemRequest itemRequest = PreferenceItemRequest.builder()
                 .id(pedidoApagar.getId()) // ID único del producto
@@ -274,9 +305,9 @@ public class PedidoServiceImpl implements PedidoService {
                 .description("description:" + pedidoApagar.getDetalle().toString()) // Descripción del producto
                 .pictureUrl("pictureUrl") // URL de la imagen del producto
                 .categoryId("categoryId") // Categoría del producto
-                .quantity(pedidoApagar.getDetalle().get) // Cantidad de unidades
-                .currencyId(Clientepedido.getId()) // Moneda
-                .unitPrice(BigDecimal.valueOf(Clientepedido.getTotal())) // Precio unitario
+                .quantity(cantidadProductos) // Cantidad de unidades
+                .currencyId("COP") // Moneda
+                .unitPrice(valorTotalPedido(detalle)) // Precio unitario
                 .build();
 
         // Crear lista de items y agregar el producto
