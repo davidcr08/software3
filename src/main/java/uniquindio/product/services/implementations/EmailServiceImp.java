@@ -87,6 +87,7 @@ public class EmailServiceImp implements EmailService {
                         smtpProperties.getUsername(),
                         smtpProperties.getPassword())
                 .withTransportStrategy(TransportStrategy.SMTP_TLS)
+                .withSessionTimeout(10 * 1000)
                 .withDebugLogging(true)
                 .buildMailer()) {
 

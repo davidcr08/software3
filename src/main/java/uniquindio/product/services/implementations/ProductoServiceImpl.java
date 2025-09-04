@@ -4,6 +4,7 @@ import uniquindio.product.dto.producto.CrearProductoDTO;
 import uniquindio.product.dto.producto.EditarProductoDTO;
 import uniquindio.product.dto.producto.ItemProductoDTO;
 import uniquindio.product.dto.producto.ProductoDetalleDTO;
+import uniquindio.product.mapper.ProductoMapper;
 import uniquindio.product.model.enums.TipoProducto;
 import uniquindio.product.exceptions.ProductoException;
 import uniquindio.product.model.documents.Producto;
@@ -14,7 +15,6 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -23,80 +23,81 @@ public class ProductoServiceImpl implements ProductoService {
     private final ProductoRepository productoRepository;
 
     @Override
-    public ProductoDetalleDTO crearProducto(CrearProductoDTO productoDTO) {
-        Producto producto = new Producto();
+    public ProductoDetalleDTO obtenerProductoPorId(String id) throws ProductoException {
+        Producto producto = productoRepository.findById(id)
+                .orElseThrow(() -> new ProductoException("El producto con ID " + id + " no existe."));
+
+        return ProductoMapper.toDetalleDTO(producto);
+    }
+
+    @Override
+    public void crearProducto(CrearProductoDTO productoDTO) throws ProductoException {
+
+        validarCantidadYValor(productoDTO.cantidad(), productoDTO.valor());
+
+        Producto producto = ProductoMapper.toEntity(productoDTO);
+        producto.setUltimaFechaModificacion(LocalDateTime.now());
+
+        productoRepository.save(producto);
+
+    }
+
+    @Override
+    public List<ItemProductoDTO> obtenerProductosPorTipo(TipoProducto tipo) throws ProductoException {
+        List<Producto> productos = productoRepository.findByTipo(tipo);
+
+        if (productos.isEmpty()) {
+            throw new ProductoException("No se encontraron productos para el tipo: " + tipo);
+        }
+
+        return productos.stream()
+                .map(ProductoMapper::toItemDTO)
+                .toList();
+    }
+
+    @Override
+    public void actualizarProducto(String id, EditarProductoDTO productoDTO) throws ProductoException {
+        Producto producto = productoRepository.findById(id)
+                .orElseThrow(() -> new ProductoException("El producto con ID " + id + " no existe."));
+
+        validarCantidadYValor(productoDTO.cantidad(), productoDTO.valor());
+
+        producto.setNombreProducto(productoDTO.nombre());
         producto.setImagenProducto(productoDTO.imagenProducto());
         producto.setCantidad(productoDTO.cantidad());
         producto.setValor(productoDTO.valor());
         producto.setTipo(productoDTO.tipo());
         producto.setUltimaFechaModificacion(LocalDateTime.now());
 
-        Producto productoGuardado = productoRepository.save(producto);
-        return convertirAProductoDetalleDTO(productoGuardado);
+        productoRepository.save(producto);
     }
 
-    @Override
-    public ProductoDetalleDTO obtenerProducto(String id) throws ProductoException {
-        Producto producto = productoRepository.findById(id)
-                .orElseThrow(() -> new ProductoException("No existe un producto con el ID: " + id));
-        return convertirAProductoDetalleDTO(producto);
+    private void validarCantidadYValor(Integer cantidad, Double valor) throws ProductoException {
+        if (cantidad == null || cantidad <= 0) {
+            throw new ProductoException("La cantidad debe ser mayor a 0.");
+        }
+        if (valor == null || valor <= 0) {
+            throw new ProductoException("El valor debe ser mayor a 0.");
+        }
     }
-
-    @Override
-    public List<ItemProductoDTO> obtenerProductosPorTipo(TipoProducto tipo) {
-        return productoRepository.findByTipo(tipo).stream()
-                .map(this::convertirAItemProductoDTO)
-                .collect(Collectors.toList());
-    }
-
-    @Override
-    public ProductoDetalleDTO actualizarProducto(String id, EditarProductoDTO productoDTO) throws ProductoException {
-        Producto producto = productoRepository.findById(id)
-                .orElseThrow(() -> new ProductoException("No existe un producto con el ID: " + id));
-
-        producto.setImagenProducto(productoDTO.imagenProducto());
-        producto.setCantidad(productoDTO.cantidad());
-        producto.setValor(productoDTO.valor());
-        producto.setTipo(productoDTO.tipo());
-        producto.setUltimaFechaModificacion(LocalDateTime.now());
-
-        Producto productoActualizado = productoRepository.save(producto);
-        return convertirAProductoDetalleDTO(productoActualizado);
-    }
-
     @Override
     public void eliminarProducto(String id) throws ProductoException {
-        if (!productoRepository.existsById(id)) {
-            throw new ProductoException("No existe un producto con el ID: " + id);
-        }
-        productoRepository.deleteById(id);
+        Producto producto = productoRepository.findById(id)
+                .orElseThrow(() -> new ProductoException("El producto con ID " + id + " no existe."));
+
+        productoRepository.delete(producto);
     }
 
     @Override
-    public List<ItemProductoDTO> listarProductos() {
-        return productoRepository.findAll().stream()
-                .map(this::convertirAItemProductoDTO)
-                .collect(Collectors.toList());
-    }
+    public List<ItemProductoDTO> listarProductos() throws ProductoException {
+        List<Producto> productos = productoRepository.findAll();
 
-    private ItemProductoDTO convertirAItemProductoDTO(Producto producto) {
-        return new ItemProductoDTO(
-                producto.getIdProducto(),
-                producto.getImagenProducto(),
-                producto.getCantidad(),
-                producto.getValor(),
-                producto.getTipo()
-        );
-    }
+        if (productos.isEmpty()) {
+            throw new ProductoException("No hay productos registrados.");
+        }
 
-    private ProductoDetalleDTO convertirAProductoDetalleDTO(Producto producto) {
-        return new ProductoDetalleDTO(
-                producto.getIdProducto(),
-                producto.getImagenProducto(),
-                producto.getCantidad(),
-                producto.getUltimaFechaModificacion(),
-                producto.getValor(),
-                producto.getTipo()
-        );
+        return productos.stream()
+                .map(ProductoMapper::toItemDTO)
+                .toList();
     }
 }

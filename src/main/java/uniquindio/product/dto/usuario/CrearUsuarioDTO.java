@@ -9,7 +9,7 @@ import uniquindio.product.model.enums.Rol;
 
 public record CrearUsuarioDTO(
         @NotBlank(message = "La cédula es requerida")
-        @Length(min = 10 ,max = 10, message = "La cédula debe tener un máximo de 10 caracteres")
+        @Length(min = 7 ,max = 11, message = "La cédula debe tener un minimo de 7 y maximo de 11 caracteres")
         @Pattern(regexp = "\\d+", message = "La cédula solo debe contener números")//La expresión regular \\d+ en @Pattern asegura que la cédula solo contenga dígitos
         String cedula,
 

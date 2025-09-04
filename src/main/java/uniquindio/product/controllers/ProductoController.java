@@ -1,5 +1,6 @@
 package uniquindio.product.controllers;
 
+import uniquindio.product.dto.autenticacion.MensajeDTO;
 import uniquindio.product.dto.producto.CrearProductoDTO;
 import uniquindio.product.dto.producto.EditarProductoDTO;
 import uniquindio.product.dto.producto.ItemProductoDTO;
@@ -21,36 +22,72 @@ public class ProductoController {
 
     private final ProductoService productoService;
 
+    /**
+     * Crea un nuevo producto.
+     */
     @PostMapping
-    public ResponseEntity<ProductoDetalleDTO> crearProducto(@Valid @RequestBody CrearProductoDTO productoDTO) {
-        return ResponseEntity.ok(productoService.crearProducto(productoDTO));
+    public ResponseEntity<MensajeDTO<String>> crearProducto(@Valid @RequestBody CrearProductoDTO productoDTO) {
+        try {
+            productoService.crearProducto(productoDTO);
+            return ResponseEntity.ok(new MensajeDTO<>(true, "Producto creado correctamente."));
+        } catch (ProductoException e) {
+            return ResponseEntity.badRequest().body(new MensajeDTO<>(false, e.getMessage()));
+        }
     }
 
-    @GetMapping("/{id}")
-    public ResponseEntity<ProductoDetalleDTO> obtenerProducto(@PathVariable String id) throws ProductoException {
-        return ResponseEntity.ok(productoService.obtenerProducto(id));
-    }
-
-    @PutMapping("/{id}")
-    public ResponseEntity<ProductoDetalleDTO> actualizarProducto(
-            @PathVariable String id,
-            @Valid @RequestBody EditarProductoDTO productoDTO) throws ProductoException {
-        return ResponseEntity.ok(productoService.actualizarProducto(id, productoDTO));
-    }
-
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Void> eliminarProducto(@PathVariable String id) throws ProductoException {
-        productoService.eliminarProducto(id);
-        return ResponseEntity.noContent().build();
-    }
-
+    /**
+     * Lista todos los productos.
+     */
     @GetMapping
-    public ResponseEntity<List<ItemProductoDTO>> listarProductos() {
-        return ResponseEntity.ok(productoService.listarProductos());
+    public ResponseEntity<MensajeDTO<List<ItemProductoDTO>>> listarProductos() throws ProductoException {
+        List<ItemProductoDTO> productos = productoService.listarProductos();
+        return ResponseEntity.ok(new MensajeDTO<>(false, productos));
     }
 
+    /**
+     * Obtiene productos por tipo.
+     */
     @GetMapping("/tipo/{tipo}")
-    public ResponseEntity<List<ItemProductoDTO>> obtenerProductosPorTipo(@PathVariable TipoProducto tipo) {
-        return ResponseEntity.ok(productoService.obtenerProductosPorTipo(tipo));
+    public ResponseEntity<MensajeDTO<List<ItemProductoDTO>>> obtenerProductosPorTipo(@PathVariable TipoProducto tipo) throws ProductoException {
+        List<ItemProductoDTO> productos = productoService.obtenerProductosPorTipo(tipo);
+        return ResponseEntity.ok(new MensajeDTO<>(false, productos));
     }
+
+    /**
+     * Obtiene un producto por su ID.
+     */
+    @GetMapping("/{id}")
+    public ResponseEntity<MensajeDTO<ProductoDetalleDTO>> obtenerProducto(@PathVariable String id) throws ProductoException {
+        ProductoDetalleDTO producto = productoService.obtenerProductoPorId(id);
+        return ResponseEntity.ok(new MensajeDTO<>(false, producto));
+    }
+
+    /**
+     * Actualiza un producto por su ID.
+     */
+    @PutMapping("/{id}")
+    public ResponseEntity<MensajeDTO<String>> actualizarProducto(
+            @PathVariable String id,
+            @Valid @RequestBody EditarProductoDTO productoDTO) {
+        try {
+            productoService.actualizarProducto(id, productoDTO);
+            return ResponseEntity.ok(new MensajeDTO<>(true, "Producto actualizado correctamente."));
+        } catch (ProductoException e) {
+            return ResponseEntity.badRequest().body(new MensajeDTO<>(false, e.getMessage()));
+        }
+    }
+
+    /**
+     * Elimina un producto por su ID.
+     */
+    @DeleteMapping("/{id}")
+    public ResponseEntity<MensajeDTO<String>> eliminarProducto(@PathVariable String id) {
+        try {
+            productoService.eliminarProducto(id);
+            return ResponseEntity.ok(new MensajeDTO<>(true, "Producto eliminado correctamente."));
+        } catch (ProductoException e) {
+            return ResponseEntity.badRequest().body(new MensajeDTO<>(false, e.getMessage()));
+        }
+    }
+
 }

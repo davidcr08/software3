@@ -114,11 +114,22 @@
 			<version>8.10.1</version>
 		</dependency>
 		<dependency>
-		<groupId>com.mercadopago</groupId>
+			<groupId>com.mercadopago</groupId>
 			<artifactId>sdk-java</artifactId>
 			<version>2.1.14</version>
 		</dependency>
+		<dependency>
+			<groupId>com.cloudinary</groupId>
+			<artifactId>cloudinary-http45</artifactId>
+			<version>1.39.0</version>
+		</dependency>
 	</dependencies>
+	<repositories>
+		<repository>
+			<id>cloudinary</id>
+			<url>https://maven.cloudinary.com</url>
+		</repository>
+	</repositories>
 
 	<build>
 		<plugins>

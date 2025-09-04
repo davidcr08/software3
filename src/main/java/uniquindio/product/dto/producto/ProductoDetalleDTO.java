@@ -5,6 +5,7 @@ import uniquindio.product.model.enums.TipoProducto;
 
 public record ProductoDetalleDTO(
         String idProducto,
+        String nombreProducto,
         String imagenProducto,
         Integer cantidad,
         LocalDateTime ultimaFechaModificacion,

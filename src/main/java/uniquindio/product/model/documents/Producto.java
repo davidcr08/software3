@@ -25,6 +25,9 @@ public class Producto {
     @Column(name = "idProducto")
     private String idProducto;
 
+    @Column(name = "nombreProducto")
+    private String nombreProducto;
+
     @Column(name = "imagenProducto")
     private String imagenProducto;
 
