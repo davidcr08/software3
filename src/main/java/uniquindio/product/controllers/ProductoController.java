@@ -16,7 +16,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/productos")
+@RequestMapping("/api/publico")
 @RequiredArgsConstructor
 public class ProductoController {
 
@@ -25,7 +25,7 @@ public class ProductoController {
     /**
      * Crea un nuevo producto.
      */
-    @PostMapping
+    @PostMapping("/crear-producto")
     public ResponseEntity<MensajeDTO<String>> crearProducto(@Valid @RequestBody CrearProductoDTO productoDTO) {
         try {
             productoService.crearProducto(productoDTO);
@@ -38,7 +38,7 @@ public class ProductoController {
     /**
      * Lista todos los productos.
      */
-    @GetMapping
+    @GetMapping("/productos")
     public ResponseEntity<MensajeDTO<List<ItemProductoDTO>>> listarProductos() throws ProductoException {
         List<ItemProductoDTO> productos = productoService.listarProductos();
         return ResponseEntity.ok(new MensajeDTO<>(false, productos));
@@ -65,7 +65,7 @@ public class ProductoController {
     /**
      * Actualiza un producto por su ID.
      */
-    @PutMapping("/{id}")
+    @PutMapping("/actualizar-producto/{id}")
     public ResponseEntity<MensajeDTO<String>> actualizarProducto(
             @PathVariable String id,
             @Valid @RequestBody EditarProductoDTO productoDTO) {

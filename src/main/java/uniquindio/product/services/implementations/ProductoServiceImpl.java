@@ -12,9 +12,12 @@ import uniquindio.product.repositories.ProductoRepository;
 import uniquindio.product.services.interfaces.ProductoService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import lombok.extern.slf4j.Slf4j;
 
 import java.time.LocalDateTime;
 import java.util.List;
+
+@Slf4j
 
 @Service
 @RequiredArgsConstructor
@@ -91,6 +94,7 @@ public class ProductoServiceImpl implements ProductoService {
     @Override
     public List<ItemProductoDTO> listarProductos() throws ProductoException {
         List<Producto> productos = productoRepository.findAll();
+        log.info("Cantidad de productos en BD: {}", productos.size());
 
         if (productos.isEmpty()) {
             throw new ProductoException("No hay productos registrados.");
