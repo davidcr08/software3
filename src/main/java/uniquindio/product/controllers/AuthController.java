@@ -19,6 +19,8 @@ public class AuthController {
 
     private final UsuarioService usuarioService;
 
+    //_______________________ENDPOINTS PARA AUTENTICACION_________________________________
+
     /**
      * Endpoint para crear una nueva cuenta de usuario.
      * @param usuarioDTO DTO con los datos del nuevo usuario

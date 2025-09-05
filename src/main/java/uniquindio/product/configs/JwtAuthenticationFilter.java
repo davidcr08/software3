@@ -48,7 +48,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             String rol = claims.get("rol", String.class);
 
             List<SimpleGrantedAuthority> authorities = List.of(
-                    new SimpleGrantedAuthority("ROLE_" + rol),
+                    new SimpleGrantedAuthority(rol),
                     new SimpleGrantedAuthority("id:" + id)
             );
 
@@ -58,7 +58,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             SecurityContextHolder.getContext().setAuthentication(auth);
 
         } catch (Exception e) {
-            // Si hay error en el token, se continúa sin autenticar
             SecurityContextHolder.clearContext();
         }
         filterChain.doFilter(request, response);

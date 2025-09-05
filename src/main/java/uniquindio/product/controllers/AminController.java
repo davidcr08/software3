@@ -1,27 +1,23 @@
 package uniquindio.product.controllers;
 
-import uniquindio.product.dto.autenticacion.MensajeDTO;
-import uniquindio.product.dto.producto.CrearProductoDTO;
-import uniquindio.product.dto.producto.EditarProductoDTO;
-import uniquindio.product.dto.producto.ItemProductoDTO;
-import uniquindio.product.dto.producto.ProductoDetalleDTO;
-import uniquindio.product.model.enums.TipoProducto;
-import uniquindio.product.exceptions.ProductoException;
-import uniquindio.product.services.interfaces.ProductoService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
+import uniquindio.product.dto.autenticacion.MensajeDTO;
+import uniquindio.product.dto.producto.CrearProductoDTO;
+import uniquindio.product.dto.producto.EditarProductoDTO;
+import uniquindio.product.exceptions.ProductoException;
+import uniquindio.product.services.interfaces.ProductoService;
 
 @RestController
-@RequestMapping("/api/publico")
+@RequestMapping("/api/admin")
 @RequiredArgsConstructor
-public class ProductoController {
+public class AminController {
 
     private final ProductoService productoService;
 
+    //_______________________ENDPOINTS PARA PRODUCTOS_________________________________
     /**
      * Crea un nuevo producto.
      */
@@ -34,34 +30,6 @@ public class ProductoController {
             return ResponseEntity.badRequest().body(new MensajeDTO<>(false, e.getMessage()));
         }
     }
-
-    /**
-     * Lista todos los productos.
-     */
-    @GetMapping("/productos")
-    public ResponseEntity<MensajeDTO<List<ItemProductoDTO>>> listarProductos() throws ProductoException {
-        List<ItemProductoDTO> productos = productoService.listarProductos();
-        return ResponseEntity.ok(new MensajeDTO<>(false, productos));
-    }
-
-    /**
-     * Obtiene productos por tipo.
-     */
-    @GetMapping("/tipo/{tipo}")
-    public ResponseEntity<MensajeDTO<List<ItemProductoDTO>>> obtenerProductosPorTipo(@PathVariable TipoProducto tipo) throws ProductoException {
-        List<ItemProductoDTO> productos = productoService.obtenerProductosPorTipo(tipo);
-        return ResponseEntity.ok(new MensajeDTO<>(false, productos));
-    }
-
-    /**
-     * Obtiene un producto por su ID.
-     */
-    @GetMapping("/{id}")
-    public ResponseEntity<MensajeDTO<ProductoDetalleDTO>> obtenerProducto(@PathVariable String id) throws ProductoException {
-        ProductoDetalleDTO producto = productoService.obtenerProductoPorId(id);
-        return ResponseEntity.ok(new MensajeDTO<>(false, producto));
-    }
-
     /**
      * Actualiza un producto por su ID.
      */

@@ -34,9 +34,31 @@ public class Carrito {
     )
     private List<DetalleCarrito> items = new ArrayList<>();
 
-    // Métodos helpers
-    public void agregarItem(DetalleCarrito item) {
-        if (items == null) items = new ArrayList<>();
-        items.add(item);
+    public void agregarOActualizarItem(DetalleCarrito nuevoItem) {
+        for (DetalleCarrito item : items) {
+            if (item.getIdProducto().equals(nuevoItem.getIdProducto())) {
+                item.setCantidad(item.getCantidad() + nuevoItem.getCantidad());
+                return;
+            }
+        }
+        items.add(nuevoItem);
+    }
+
+    public boolean eliminarItem(String idProducto) {
+        return items.removeIf(item -> item.getIdProducto().equals(idProducto));
+    }
+
+    // Vaciar carrito
+    public void vaciar() {
+        if (items != null) {
+            items.clear();
+        }
+    }
+
+    // Calcular total del carrito (se necesitaría obtener valor del producto desde el servicio)
+    public int cantidadTotal() {
+        return items.stream()
+                .mapToInt(DetalleCarrito::getCantidad)
+                .sum();
     }
 }
