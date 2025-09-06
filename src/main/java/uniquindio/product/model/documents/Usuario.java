@@ -3,8 +3,8 @@ package uniquindio.product.model.documents;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
-import uniquindio.product.enums.EstadoCuenta;
-import uniquindio.product.enums.Rol;
+import uniquindio.product.model.enums.EstadoCuenta;
+import uniquindio.product.model.enums.Rol;
 
 import java.time.LocalDateTime;
 
@@ -53,4 +53,5 @@ public class Usuario {
 
     @Column(name = "fecha_expiracion_codigo_contrasenia")
     private LocalDateTime fechaExpiracionCodigoContrasenia;
+
 }

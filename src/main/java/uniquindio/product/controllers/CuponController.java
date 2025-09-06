@@ -13,8 +13,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import lombok.RequiredArgsConstructor;
-import uniquindio.product.enums.EstadoCupon;
-import uniquindio.product.enums.TipoCupon;
+import uniquindio.product.model.enums.EstadoCupon;
+import uniquindio.product.model.enums.TipoCupon;
 import uniquindio.product.model.documents.Cupon;
 import uniquindio.product.services.interfaces.CuponService;
 

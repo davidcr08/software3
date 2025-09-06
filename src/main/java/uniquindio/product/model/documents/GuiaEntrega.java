@@ -3,7 +3,7 @@ package uniquindio.product.model.documents;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
-import uniquindio.product.enums.EstadoGuiaEntrega;
+import uniquindio.product.model.enums.EstadoGuiaEntrega;
 
 @Getter
 @Setter

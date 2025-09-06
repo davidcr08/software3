@@ -5,9 +5,9 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import uniquindio.product.enums.EstadoPago;
-import uniquindio.product.enums.Moneda;
-import uniquindio.product.enums.TipoPago;
+import uniquindio.product.model.enums.EstadoPago;
+import uniquindio.product.model.enums.Moneda;
+import uniquindio.product.model.enums.TipoPago;
 
 import java.time.LocalDateTime;
 

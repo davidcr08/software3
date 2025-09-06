@@ -1,6 +1,6 @@
 package uniquindio.product.dto.pedido;
 
-import uniquindio.product.enums.TipoProducto;
+import uniquindio.product.model.enums.TipoProducto;
 
 public record MostrarDetallePedidoDTO(
         String idProducto,

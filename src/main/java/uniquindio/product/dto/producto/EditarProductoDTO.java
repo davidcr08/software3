@@ -4,9 +4,14 @@ import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
-import uniquindio.product.enums.TipoProducto;
+import org.hibernate.validator.constraints.Length;
+import uniquindio.product.model.enums.TipoProducto;
 
 public record EditarProductoDTO(
+
+        @NotBlank(message = "El nombre es requerido")
+        @Length(max = 100, message = "El nombre debe tener un máximo de 100 caracteres")
+        String nombre,
 
         @NotBlank(message = "La imagen del producto es obligatoria.")
         String imagenProducto,

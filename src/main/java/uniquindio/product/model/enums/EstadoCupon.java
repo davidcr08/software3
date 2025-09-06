@@ -1,4 +1,4 @@
-package uniquindio.product.enums;
+package uniquindio.product.model.enums;
 
 /**
  * Estados de disponibilidad de un cupón.

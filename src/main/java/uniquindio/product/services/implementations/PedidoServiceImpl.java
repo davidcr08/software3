@@ -10,14 +10,14 @@ import com.mercadopago.exceptions.MPException;
 import com.mercadopago.resources.preference.Preference;
 import org.springframework.web.bind.annotation.GetMapping;
 import uniquindio.product.dto.pedido.*;
-import uniquindio.product.enums.EstadoPago;
-import uniquindio.product.enums.TipoPago;
+import uniquindio.product.model.enums.EstadoPago;
+import uniquindio.product.model.enums.TipoPago;
 import uniquindio.product.exceptions.PedidoException;
 import uniquindio.product.exceptions.ProductoException;
 import uniquindio.product.model.documents.Carrito;
 import uniquindio.product.model.documents.Pedido;
 import uniquindio.product.model.documents.Producto;
-import uniquindio.product.enums.Moneda;
+import uniquindio.product.model.enums.Moneda;
 import uniquindio.product.model.vo.DetallePedido;
 import uniquindio.product.exceptions.CarritoException;
 import uniquindio.product.model.vo.Pago;
@@ -47,7 +47,7 @@ public class PedidoServiceImpl implements PedidoService {
 
     @Override
     public Pedido crearPedidoDesdeCarrito(String idCliente, String codigoPasarela) throws CarritoException, ProductoException, PedidoException {
-        Carrito carrito = carritoRepository.findByIdUsuario(idCliente)
+        Carrito carrito = carritoRepository.findByUsuarioId(idCliente)
                 .orElseThrow(() -> new CarritoException("No se encontró el carrito para el usuario con ID: " + idCliente));
 
         if (carrito.getItems().isEmpty()) {

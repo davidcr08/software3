@@ -5,7 +5,7 @@ import org.hibernate.validator.constraints.Length;
 
 public record CambiarPasswordDTO(
 
-        @NotBlank(message = "El codigo esta vacio")
+        @NotBlank(message = "El código de verificación es requerido")
         String codigoVerificacion,
 
         @NotBlank(message = "La contraseña es requerida")

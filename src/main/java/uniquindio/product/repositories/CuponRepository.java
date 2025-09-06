@@ -6,8 +6,8 @@ import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
-import uniquindio.product.enums.EstadoCupon;
-import uniquindio.product.enums.TipoCupon;
+import uniquindio.product.model.enums.EstadoCupon;
+import uniquindio.product.model.enums.TipoCupon;
 import uniquindio.product.model.documents.Cupon;
 
 /**

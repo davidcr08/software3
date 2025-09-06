@@ -19,31 +19,46 @@ public class Carrito {
     @Id
     @EqualsAndHashCode.Include
     @GeneratedValue(strategy = GenerationType.UUID)
+    @Column(length = 36)
     private String id;
 
-    @Column(name = "id_usuario", nullable = false, unique = true)
-    private String idUsuario;
+    @OneToOne
+    @JoinColumn(name = "usuario_id", nullable = false, unique = true)
+    private Usuario usuario;
 
-    @ElementCollection(fetch = FetchType.EAGER) // Cambia a EAGER
+    @ElementCollection(fetch = FetchType.EAGER)
     @CollectionTable(
             name = "carrito_items",
             joinColumns = @JoinColumn(name = "carrito_id"),
             foreignKey = @ForeignKey(name = "FK_carrito_items_carrito")
     )
-    @Column(name = "items") // Asegura el mapeo
     private List<DetalleCarrito> items = new ArrayList<>();
 
-    // Metodo helper para manejar la colección
-    public void agregarItem(DetalleCarrito item) {
-        if (this.items == null) {
-            this.items = new ArrayList<>();
+    public void agregarOActualizarItem(DetalleCarrito nuevoItem) {
+        for (DetalleCarrito item : items) {
+            if (item.getIdProducto().equals(nuevoItem.getIdProducto())) {
+                item.setCantidad(item.getCantidad() + nuevoItem.getCantidad());
+                return;
+            }
         }
-        this.items.add(item);
+        items.add(nuevoItem);
     }
 
-    public void removerItem(DetalleCarrito item) {
-        if (this.items != null) {
-            this.items.remove(item);
+    public boolean eliminarItem(String idProducto) {
+        return items.removeIf(item -> item.getIdProducto().equals(idProducto));
+    }
+
+    // Vaciar carrito
+    public void vaciar() {
+        if (items != null) {
+            items.clear();
         }
+    }
+
+    // Calcular total del carrito (se necesitaría obtener valor del producto desde el servicio)
+    public int cantidadTotal() {
+        return items.stream()
+                .mapToInt(DetalleCarrito::getCantidad)
+                .sum();
     }
 }

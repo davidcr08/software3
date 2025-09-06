@@ -4,12 +4,12 @@ import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
 import org.hibernate.validator.constraints.Length;
-import uniquindio.product.enums.EstadoCuenta;
-import uniquindio.product.enums.Rol;
+import uniquindio.product.model.enums.EstadoCuenta;
+import uniquindio.product.model.enums.Rol;
 
 public record CrearUsuarioDTO(
         @NotBlank(message = "La cédula es requerida")
-        @Length(min = 10 ,max = 10, message = "La cédula debe tener un máximo de 10 caracteres")
+        @Length(min = 7 ,max = 11, message = "La cédula debe tener un minimo de 7 y maximo de 11 caracteres")
         @Pattern(regexp = "\\d+", message = "La cédula solo debe contener números")//La expresión regular \\d+ en @Pattern asegura que la cédula solo contenga dígitos
         String cedula,
 
@@ -30,6 +30,4 @@ public record CrearUsuarioDTO(
         @NotBlank(message = "La contraseña es requerida")
         @Length(min = 7, max = 20, message = "La contraseña debe tener un mínimo de 7 caracteres y un máximo de 20 caracteres")
         String contrasenia
-
-
 ) {}
