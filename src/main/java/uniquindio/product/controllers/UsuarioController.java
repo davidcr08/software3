@@ -59,65 +59,70 @@ public class UsuarioController {
     /**
      * Obtiene el carrito completo de un usuario.
      */
-    @GetMapping("/{idUsuario}")
-    public ResponseEntity<MensajeDTO<CarritoResponseDTO>> obtenerCarritoCompleto(@PathVariable String idUsuario)
-            throws CarritoException, ProductoException {
-        CarritoResponseDTO carrito = carritoService.obtenerCarritoCompleto(idUsuario);
+    @GetMapping("/mi-carrito")
+    public ResponseEntity<MensajeDTO<CarritoResponseDTO>> obtenerCarritoCompleto(Authentication authentication) throws CarritoException, ProductoException {
+        String id = AuthUtils.obtenerIdUsuarioDesdeToken(authentication);
+        CarritoResponseDTO carrito = carritoService.obtenerCarritoCompleto(id);
         return ResponseEntity.ok(new MensajeDTO<>(false, carrito));
     }
 
     /**
-     * Agrega ítems al carrito del usuario.
+     * Agrega ítems al carrito del usuario autenticado.
      */
-    @PostMapping("/{idUsuario}/items")
+    @PostMapping("/mi-carrito/items")
     public ResponseEntity<MensajeDTO<CarritoDTO>> agregarItemsAlCarrito(
-            @PathVariable String idUsuario,
+            Authentication authentication,
             @RequestBody List<DetalleCarritoDTO> nuevosItems
     ) throws CarritoException {
-        CarritoDTO carrito = carritoService.agregarItemsAlCarrito(idUsuario, nuevosItems);
+        String id = AuthUtils.obtenerIdUsuarioDesdeToken(authentication);
+        CarritoDTO carrito = carritoService.agregarItemsAlCarrito(id, nuevosItems);
         return ResponseEntity.ok(new MensajeDTO<>(false, carrito));
     }
 
     /**
-     * Elimina un ítem del carrito del usuario.
+     * Elimina un ítem del carrito del usuario autenticado.
      */
-    @DeleteMapping("/{idUsuario}/items/{idProducto}")
+    @DeleteMapping("/mi-carrito/items/{idProducto}")
     public ResponseEntity<MensajeDTO<CarritoDTO>> eliminarItemDelCarrito(
-            @PathVariable String idUsuario,
+            Authentication authentication,
             @PathVariable String idProducto
     ) throws CarritoException {
-        CarritoDTO carrito = carritoService.eliminarItemDelCarrito(idUsuario, idProducto);
+        String id = AuthUtils.obtenerIdUsuarioDesdeToken(authentication);
+        CarritoDTO carrito = carritoService.eliminarItemDelCarrito(id, idProducto);
         return ResponseEntity.ok(new MensajeDTO<>(false, carrito));
     }
 
     /**
-     * Vacía el carrito de un usuario.
+     * Vacía el carrito del usuario autenticado.
      */
-    @DeleteMapping("/{idUsuario}/vaciar")
-    public ResponseEntity<MensajeDTO<CarritoDTO>> vaciarCarrito(@PathVariable String idUsuario)
+    @DeleteMapping("/mi-carrito/vaciar")
+    public ResponseEntity<MensajeDTO<CarritoDTO>> vaciarCarrito(Authentication authentication)
             throws CarritoException {
-        CarritoDTO carrito = carritoService.vaciarCarrito(idUsuario);
+        String id = AuthUtils.obtenerIdUsuarioDesdeToken(authentication);
+        CarritoDTO carrito = carritoService.vaciarCarrito(id);
         return ResponseEntity.ok(new MensajeDTO<>(false, carrito));
     }
 
     /**
-     * Lista los productos detallados en el carrito del usuario.
+     * Lista los productos detallados en el carrito del usuario autenticado.
      */
-    @GetMapping("/{idUsuario}/items")
+    @GetMapping("/mi-carrito/items")
     public ResponseEntity<MensajeDTO<List<InformacionProductoCarritoDTO>>> listarProductosEnCarrito(
-            @PathVariable String idUsuario
+            Authentication authentication
     ) throws CarritoException, ProductoException {
-        List<InformacionProductoCarritoDTO> productos = carritoService.listarProductosEnCarrito(idUsuario);
+        String id = AuthUtils.obtenerIdUsuarioDesdeToken(authentication);
+        List<InformacionProductoCarritoDTO> productos = carritoService.listarProductosEnCarrito(id);
         return ResponseEntity.ok(new MensajeDTO<>(false, productos));
     }
 
     /**
-     * Calcula el total del carrito (valor monetario).
+     * Calcula el total del carrito del usuario autenticado.
      */
-    @GetMapping("/{idUsuario}/total")
-    public ResponseEntity<MensajeDTO<Double>> calcularTotalCarrito(@PathVariable String idUsuario)
+    @GetMapping("/mi-carrito/total")
+    public ResponseEntity<MensajeDTO<Double>> calcularTotalCarrito(Authentication authentication)
             throws CarritoException {
-        Double total = carritoService.calcularTotalCarrito(idUsuario);
+        String id = AuthUtils.obtenerIdUsuarioDesdeToken(authentication);
+        Double total = carritoService.calcularTotalCarrito(id);
         return ResponseEntity.ok(new MensajeDTO<>(false, total));
     }
 }
