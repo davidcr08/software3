@@ -1,12 +1,13 @@
 package uniquindio.product.services.interfaces;
 
 import org.springframework.web.multipart.MultipartFile;
+import uniquindio.product.dto.producto.ImagenDTO;
 
 import java.util.Map;
 
 public interface ImagesService {
 
-    Map subirImagen(MultipartFile imagen) throws Exception;
-    Map eliminarImagen(String idImagen) throws Exception;
+    ImagenDTO subirImagen(MultipartFile imagen) throws Exception;
+    String eliminarImagen(String idImagen) throws Exception;
 
 }

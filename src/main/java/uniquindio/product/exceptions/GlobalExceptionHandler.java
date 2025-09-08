@@ -12,15 +12,22 @@ import java.util.Map;
 @ControllerAdvice
 public class GlobalExceptionHandler {
 
+
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<MensajeDTO<String>> handleGenericException(Exception ex) {
+        return ResponseEntity.internalServerError()
+                .body(new MensajeDTO<>(true, "Error interno del servidor: " + ex.getMessage()));
+    }
+
     @ExceptionHandler(UsuarioException.class)
     public ResponseEntity<MensajeDTO<String>> handleCuentaException(UsuarioException ex) {
-        return ResponseEntity.badRequest().body(new MensajeDTO<>(false, ex.getMessage()));
+        return ResponseEntity.badRequest().body(new MensajeDTO<>(true, ex.getMessage()));
     }
 
     @ExceptionHandler(RuntimeException.class)
     public ResponseEntity<MensajeDTO<String>> handleRuntimeException(RuntimeException ex) {
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(new MensajeDTO<>(false, "Error interno del servidor: " + ex.getMessage()));
+                .body(new MensajeDTO<>(true, "Error interno del servidor: " + ex.getMessage()));
     }
 
 }

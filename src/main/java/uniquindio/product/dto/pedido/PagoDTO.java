@@ -4,7 +4,9 @@ import uniquindio.product.model.enums.EstadoPago;
 import uniquindio.product.model.enums.Moneda;
 import uniquindio.product.model.enums.TipoPago;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 
 public record PagoDTO(
         String idPago,
@@ -12,8 +14,8 @@ public record PagoDTO(
         TipoPago tipoPago,
         String detalleEstado,
         String codigoAutorizacion,
-        LocalDateTime fecha,
-        Double valorTransaccion,
+        OffsetDateTime fecha,
+        BigDecimal valorTransaccion,
         EstadoPago estado,
         String metodoPago
 ) {}
