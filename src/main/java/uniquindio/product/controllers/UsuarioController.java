@@ -137,28 +137,25 @@ public class UsuarioController {
     /**
      * Crear un pedido desde el carrito del cliente
      */
-    @PostMapping("/{idCliente}/crear/{codigoPasarela}")
-    public ResponseEntity<MensajeDTO<MostrarPedidoDTO>> crearPedidoDesdeCarrito(
-            @PathVariable String idCliente,
-            @PathVariable String codigoPasarela
-    ) throws CarritoException, ProductoException, PedidoException {
-        return ResponseEntity.ok(
-                new MensajeDTO<>(false,
-                        pedidoService.crearPedidoDesdeCarrito(idCliente, codigoPasarela))
-        );
+    @PostMapping("/orden/crear-pedido")
+    public ResponseEntity<MensajeDTO<MostrarPedidoDTO>> crearPedidoDesdeCarrito(Authentication authentication)
+            throws CarritoException, ProductoException, PedidoException {
+
+        String idCliente = AuthUtils.obtenerIdUsuarioDesdeToken(authentication);
+        MostrarPedidoDTO pedido = pedidoService.crearPedidoDesdeCarrito(idCliente);
+        return ResponseEntity.ok(new MensajeDTO<>(false, pedido));
     }
+
 
     /**
      * Obtener todos los pedidos de un cliente
      */
-    @GetMapping("/{idCliente}")
+    @GetMapping("/pedido")
     public ResponseEntity<MensajeDTO<List<PedidoResponseDTO>>> obtenerPedidosPorCliente(
-            @PathVariable String idCliente
-    ) throws PedidoException {
-        return ResponseEntity.ok(
-                new MensajeDTO<>(false,
-                        pedidoService.obtenerPedidosPorCliente(idCliente))
-        );
+            Authentication authentication) throws PedidoException {
+        String idCliente = AuthUtils.obtenerIdUsuarioDesdeToken(authentication);
+        List<PedidoResponseDTO> pedidos = pedidoService.obtenerPedidosPorCliente(idCliente);
+        return ResponseEntity.ok(new MensajeDTO<>(false, pedidos));
     }
 
     /**
@@ -168,22 +165,26 @@ public class UsuarioController {
     public ResponseEntity<MensajeDTO<MostrarPedidoDTO>> mostrarPedido(
             @PathVariable String idPedido
     ) throws ProductoException, PedidoException {
-        return ResponseEntity.ok(
-                new MensajeDTO<>(false,
-                        pedidoService.mostrarPedido(idPedido))
-        );
+        MostrarPedidoDTO pedido = pedidoService.mostrarPedido(idPedido);
+        return ResponseEntity.ok(new MensajeDTO<>(false, pedido));
     }
 
     /**
      * Iniciar proceso de pago con MercadoPago
      */
-    @PostMapping("/{idPedido}/pago")
+    @PostMapping("/pago/{idPedido}")
     public ResponseEntity<MensajeDTO<Preference>> realizarPago(
             @PathVariable String idPedido
     ) throws Exception {
-        return ResponseEntity.ok(
-                new MensajeDTO<>(false,
-                        pedidoService.realizarPago(idPedido))
-        );
+        Preference preference = pedidoService.realizarPago(idPedido);
+        return ResponseEntity.ok(new MensajeDTO<>(false, preference));
+    }
+
+    @DeleteMapping("/eliminar-pedido/{idPedido}")
+    public ResponseEntity<MensajeDTO<String>> eliminarPedido(
+            @PathVariable String idPedido
+    ) throws PedidoException {
+        pedidoService.eliminarPedido(idPedido);
+        return ResponseEntity.ok(new MensajeDTO<>(false, "Pedido eliminado correctamente"));
     }
 }

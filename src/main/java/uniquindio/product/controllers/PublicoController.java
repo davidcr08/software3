@@ -8,9 +8,11 @@ import uniquindio.product.dto.producto.ItemProductoDTO;
 import uniquindio.product.dto.producto.ProductoDetalleDTO;
 import uniquindio.product.exceptions.ProductoException;
 import uniquindio.product.model.enums.TipoProducto;
+import uniquindio.product.services.interfaces.PedidoService;
 import uniquindio.product.services.interfaces.ProductoService;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/publico")
@@ -18,6 +20,15 @@ import java.util.List;
 public class PublicoController {
 
     private final ProductoService productoService;
+    private final PedidoService pedidoService;
+
+    //_______________________Webhook de MercadoPago_________________________________
+
+    @PostMapping("/pagos/notificacion")
+    public ResponseEntity<MensajeDTO<String>> recibirNotificacion(@RequestBody Map<String, Object> request) {
+        pedidoService.recibirNotificacionMercadoPago(request);
+        return ResponseEntity.ok(new MensajeDTO<>(false, "Notificación recibida correctamente"));
+    }
 
     //_______________________ENDPOINTS PARA PRODUCTOS_________________________________
     /**

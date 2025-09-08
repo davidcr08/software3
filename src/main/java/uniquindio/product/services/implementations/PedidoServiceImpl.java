@@ -8,6 +8,7 @@ import com.mercadopago.client.preference.PreferenceItemRequest;
 import com.mercadopago.client.preference.PreferenceRequest;
 import com.mercadopago.resources.payment.Payment;
 import com.mercadopago.resources.preference.Preference;
+import org.springframework.beans.factory.annotation.Value;
 import uniquindio.product.dto.pedido.*;
 import uniquindio.product.mapper.PagoMapper;
 import uniquindio.product.mapper.PedidoMapper;
@@ -42,12 +43,15 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class PedidoServiceImpl implements PedidoService {
 
+    @Value("${mercadopago.access.token}")
+    private String mercadoPagoToken;
+
     private final PedidoRepository pedidoRepository;
     private final CarritoRepository carritoRepository;
     private final ProductoRepository productoRepository;
 
     @Override
-    public MostrarPedidoDTO crearPedidoDesdeCarrito(String idCliente, String codigoPasarela)
+    public MostrarPedidoDTO crearPedidoDesdeCarrito(String idCliente)
             throws CarritoException, ProductoException {
 
         Carrito carrito = carritoRepository.findByUsuarioId(idCliente)
@@ -76,7 +80,7 @@ public class PedidoServiceImpl implements PedidoService {
         // Construimos DTO del pedido
         CrearPedidoDTO pedidoDTO = new CrearPedidoDTO(
                 idCliente,
-                codigoPasarela,
+                null,
                 OffsetDateTime.now(),
                 detallesPedidoDTO,
                 pagoDTO
@@ -288,8 +292,8 @@ public class PedidoServiceImpl implements PedidoService {
             itemsPasarela.add(itemRequest);
         }
 
-        // Configurar credenciales (⚠️ esto lo ideal es moverlo a application.properties)
-        MercadoPagoConfig.setAccessToken("TOKEN_MERCADO_PAGO");
+        // Configurar credenciales
+        MercadoPagoConfig.setAccessToken(mercadoPagoToken);
 
         // Configurar URLs de retorno
         PreferenceBackUrlsRequest backUrls = PreferenceBackUrlsRequest.builder()
@@ -303,7 +307,7 @@ public class PedidoServiceImpl implements PedidoService {
                 .backUrls(backUrls)
                 .items(itemsPasarela)
                 .metadata(Map.of("id_pedido", pedidoGuardado.getId()))
-                .notificationUrl("URL_PUBLICA_WEBHOOK")
+                .notificationUrl("https://d92194fd0109.ngrok-free.app")
                 .build();
 
         // Crear preferencia en MercadoPago

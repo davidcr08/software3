@@ -14,7 +14,7 @@ import java.util.Map;
 
 public interface PedidoService {
 
-    MostrarPedidoDTO crearPedidoDesdeCarrito(String idCliente, String codigoPasarela) throws CarritoException, ProductoException, PedidoException;
+    MostrarPedidoDTO crearPedidoDesdeCarrito(String idCliente) throws CarritoException, ProductoException, PedidoException;
     List<PedidoResponseDTO> obtenerPedidosPorCliente(String idCliente) throws PedidoException;
     void eliminarPedido(String idPedido) throws PedidoException;
     MostrarPedidoDTO mostrarPedido(String idPedido) throws ProductoException, PedidoException;
