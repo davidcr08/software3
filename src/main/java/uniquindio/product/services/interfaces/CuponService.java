@@ -3,8 +3,8 @@ package uniquindio.product.services.interfaces;
 import java.util.List;
 import java.util.Optional;
 
-import uniquindio.product.enums.EstadoCupon;
-import uniquindio.product.enums.TipoCupon;
+import uniquindio.product.model.enums.EstadoCupon;
+import uniquindio.product.model.enums.TipoCupon;
 import uniquindio.product.model.documents.Cupon;
 
 /**

@@ -6,5 +6,6 @@ public record CarritoResponseDTO(
         String idCarrito,
         String idUsuario,
         List<InformacionProductoCarritoDTO> items,
-        Double total
+        Double total,
+        int totalProductos
 ) {}

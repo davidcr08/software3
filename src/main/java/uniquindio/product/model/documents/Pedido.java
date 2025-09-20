@@ -1,11 +1,13 @@
 package uniquindio.product.model.documents;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotNull;
 import lombok.*;
 import uniquindio.product.model.vo.DetallePedido;
 import uniquindio.product.model.vo.Pago;
 
-import java.time.LocalDate;
+import java.math.BigDecimal;
+import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -24,21 +26,31 @@ public class Pedido {
     private String id;
 
     @Column(name = "id_cliente", nullable = false)
+    @NotNull
     private String idCliente;
 
     @Column(name = "codigo_pasarela")
     private String codigoPasarela;
 
-    @Column(name = "fechaCreacion", nullable = false)
-    private LocalDate fecha;
+    @Column(name = "fecha_creacion", nullable = false)
+    @NotNull
+    private OffsetDateTime fechaCreacion;
 
     @Embedded
+    @NotNull
     private Pago pago;
 
-    @ElementCollection
+    @ElementCollection(fetch = FetchType.LAZY)
     @CollectionTable(name = "pedido_detalles", joinColumns = @JoinColumn(name = "pedido_id"))
     private List<DetallePedido> detalle = new ArrayList<>();
 
-    @Column(name = "total", nullable = false)
-    private Double total;
+    @Column(name = "total", nullable = false, precision = 19, scale = 4)
+    @NotNull
+    private BigDecimal total;
+
+    public BigDecimal calcularTotal() {
+        return detalle.stream()
+                .map(d -> d.getPrecioUnitario().multiply(BigDecimal.valueOf(d.getCantidad())))
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+    }
 }

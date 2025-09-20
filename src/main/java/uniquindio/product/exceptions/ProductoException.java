@@ -1,6 +1,6 @@
 package uniquindio.product.exceptions;
 
-public class ProductoException extends Exception{
+public class ProductoException extends RuntimeException{
 
     public ProductoException(String message) {
         super(message);

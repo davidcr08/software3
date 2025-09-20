@@ -5,17 +5,22 @@ import uniquindio.product.dto.producto.EditarProductoDTO;
 import uniquindio.product.dto.producto.ItemProductoDTO;
 import uniquindio.product.dto.producto.ProductoDetalleDTO;
 
-import uniquindio.product.enums.TipoProducto;
+import uniquindio.product.model.enums.TipoProducto;
 import uniquindio.product.exceptions.ProductoException;
 
 import java.util.List;
 
 public interface ProductoService {
 
-    ProductoDetalleDTO crearProducto(CrearProductoDTO productoDTO);
-    ProductoDetalleDTO obtenerProducto(String id) throws ProductoException;
-    List<ItemProductoDTO> obtenerProductosPorTipo(TipoProducto tipo);
-    ProductoDetalleDTO actualizarProducto(String id, EditarProductoDTO productoDTO) throws ProductoException;
+    void crearProducto(CrearProductoDTO productoDTO) throws ProductoException;
+
+    ProductoDetalleDTO obtenerProductoPorId(String id) throws ProductoException;
+
+    List<ItemProductoDTO> obtenerProductosPorTipo(TipoProducto tipo) throws ProductoException;
+
+    void actualizarProducto(String id, EditarProductoDTO productoDTO) throws ProductoException;
+
     void eliminarProducto(String id) throws ProductoException;
-    List<ItemProductoDTO> listarProductos();
+
+    List<ItemProductoDTO> listarProductos() throws ProductoException;
 }

@@ -4,6 +4,7 @@ import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
 
 public record DetallePedidoDTO(
+
         @NotNull(message = "El ID del producto no puede ser nulo")
         String idProducto,
 
