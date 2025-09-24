@@ -1,5 +1,6 @@
 package uniquindio.product.configs;
 
+import jakarta.annotation.PostConstruct;
 import lombok.Getter;
 import lombok.Setter;
 import org.springframework.boot.context.properties.ConfigurationProperties;
@@ -14,4 +15,9 @@ public class SmtpProperties {
     private int port;
     private String username;
     private String password;
+
+    @PostConstruct
+    public void check() {
+        System.out.println("SMTP config -> user=" + username + ", pass=" + (password != null ? "******" : "NULL"));
+    }
 }
