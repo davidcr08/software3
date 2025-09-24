@@ -12,14 +12,12 @@ import org.springframework.beans.factory.annotation.Value;
 import uniquindio.product.dto.pedido.*;
 import uniquindio.product.mapper.PagoMapper;
 import uniquindio.product.mapper.PedidoMapper;
-import uniquindio.product.model.enums.EstadoPago;
-import uniquindio.product.model.enums.TipoPago;
+import uniquindio.product.model.enums.EstadoPedido;
 import uniquindio.product.exceptions.PedidoException;
 import uniquindio.product.exceptions.ProductoException;
 import uniquindio.product.model.documents.Carrito;
 import uniquindio.product.model.documents.Pedido;
 import uniquindio.product.model.documents.Producto;
-import uniquindio.product.model.enums.Moneda;
 import uniquindio.product.model.vo.DetalleCarrito;
 import uniquindio.product.model.vo.DetallePedido;
 import uniquindio.product.exceptions.CarritoException;
@@ -61,84 +59,56 @@ public class PedidoServiceImpl implements PedidoService {
             throw new CarritoException("El carrito debe tener al menos un producto.");
         }
 
-        // Convertimos los items del carrito a detalles DTO
+        // Convertimos los items del carrito en detalle del pedido
         List<DetallePedidoDTO> detallesPedidoDTO = convertirCarritoADetallePedidoDTO(carrito.getItems());
 
-        // Creamos un pago inicial simulado
-        PagoDTO pagoDTO = new PagoDTO(
-                "PAGO_" + System.currentTimeMillis(),
-                Moneda.COP,
-                TipoPago.TARJETA_CREDITO,
-                "Pendiente de procesar",
-                "AUT_" + System.currentTimeMillis(),
-                OffsetDateTime.now(),
-                calcularTotalCarrito(carrito),
-                EstadoPago.PENDIENTE,
-                "Pasarela de pago"
-        );
-
-        // Construimos DTO del pedido
+        // 🚨 Aquí ya no generamos pago simulado
         CrearPedidoDTO pedidoDTO = new CrearPedidoDTO(
                 idCliente,
-                null,
+                null, // código pasarela, se llenará al crear la preferencia en MercadoPago
                 OffsetDateTime.now(),
                 detallesPedidoDTO,
-                pagoDTO
+                null // pago inicia en null (aún no procesado por la pasarela)
         );
 
-        // Creamos el pedido real
         MostrarPedidoDTO pedidoCreado = crearPedido(pedidoDTO);
 
-        // Limpiamos el carrito
-        carrito.getItems().clear();
+        carrito.vaciar();
         carritoRepository.save(carrito);
 
         return pedidoCreado;
     }
 
-    /**
-     * Convierte los ítems del carrito en una lista de {@link DetallePedidoDTO}.
-     *
-     * @param itemsCarrito lista de ítems del carrito del usuario.
-     * @return lista de detalles del pedido en formato DTO.
-     * @throws IllegalArgumentException si la lista de ítems es nula.
-     */
     private List<DetallePedidoDTO> convertirCarritoADetallePedidoDTO(List<DetalleCarrito> itemsCarrito) {
-        if (itemsCarrito == null) {
-            throw new IllegalArgumentException("La lista de ítems del carrito no puede ser nula.");
+        if (itemsCarrito == null || itemsCarrito.isEmpty()) {
+            throw new IllegalArgumentException("La lista de ítems del carrito no puede estar vacía.");
         }
 
         return itemsCarrito.stream()
-                .map(item -> new DetallePedidoDTO(
-                        item.getIdProducto(),
-                        item.getCantidad()
-                ))
+                .map(item -> new DetallePedidoDTO(item.getIdProducto(), item.getCantidad()))
                 .toList();
     }
-    private MostrarPedidoDTO crearPedido(CrearPedidoDTO pedidoDTO) throws ProductoException {
-        // Obtener productos referenciados en el pedido
-        List<Producto> productos = productoRepository.findAllById(
-                pedidoDTO.detallePedido().stream()
-                        .map(DetallePedidoDTO::idProducto)
-                        .toList()
-        );
 
-        if (productos.size() != pedidoDTO.detallePedido().size()) {
+    private MostrarPedidoDTO crearPedido(CrearPedidoDTO pedidoDTO) throws ProductoException {
+        List<String> idsProductos = pedidoDTO.detallePedido().stream()
+                .map(DetallePedidoDTO::idProducto)
+                .toList();
+
+        List<Producto> productos = productoRepository.findAllById(idsProductos);
+
+        if (productos.size() != idsProductos.size()) {
             throw new ProductoException("Uno o más productos no existen en la base de datos.");
         }
 
-        // Convertir DTO → entidad usando el mapper
         Pedido pedido = PedidoMapper.toEntity(pedidoDTO, productos);
+        pedido.setEstado(EstadoPedido.PENDIENTE); // Estado inicial
+        pedido.setPago(null);          // Pago aún no registrado
+        pedido.setCodigoPasarela(null);
 
-        // Guardar pedido en base de datos
         Pedido pedidoGuardado = pedidoRepository.save(pedido);
 
-        // (Temporal) nombreCliente, luego se integrará con UsuarioService
-        String nombreCliente = "Cliente Temporal";
-
-        return PedidoMapper.toMostrarPedidoDTO(pedidoGuardado, nombreCliente, productos);
+        return PedidoMapper.toMostrarPedidoDTO(pedidoGuardado, "Cliente Temporal", productos);
     }
-
 
     @Override
     public MostrarPedidoDTO mostrarPedido(String idPedido) throws ProductoException, PedidoException {
@@ -192,45 +162,6 @@ public class PedidoServiceImpl implements PedidoService {
         return pedidoRepository.findById(id)
                 .orElseThrow(() -> new PedidoException("No se encontró el pedido con ID: " + id));
     }
-
-    /*
-     * Calcula la cantidad total de productos en una lista de detalles.
-     *
-     * @param detalles lista de detalles del pedido
-     * @return cantidad total de productos
-
-     private int calcularCantidadProductos(List<DetallePedido> detalles) {
-        if (detalles == null || detalles.isEmpty()) {
-            return 0;
-        }
-
-        return detalles.stream()
-                .filter(detalle -> detalle.getCantidad() != null)
-                .mapToInt(DetallePedido::getCantidad)
-                .sum();
-    }
-
-     * Calcula el valor total del pedido con base en los detalles.
-     *
-     * @param detalles lista de detalles del pedido
-     * @return valor total como BigDecimal
-
-     private BigDecimal valorTotalPedido(List<DetallePedido> detalles) {
-        if (detalles == null || detalles.isEmpty()) {
-            return BigDecimal.ZERO;
-        }
-
-        return detalles.stream()
-                .filter(detalle -> detalle.getCantidad() != null && detalle.getPrecioUnitario() != null)
-                .map(detalle -> {
-                    BigDecimal cantidad = BigDecimal.valueOf(detalle.getCantidad());
-                    BigDecimal precio = detalle.getPrecioUnitario();
-                    return cantidad.multiply(precio);
-                })
-                .reduce(BigDecimal.ZERO, BigDecimal::add);
-    }
-
-    **/
 
     /**
      * Calcula el total del carrito sumando el valor de cada producto multiplicado por su cantidad.
@@ -307,7 +238,7 @@ public class PedidoServiceImpl implements PedidoService {
                 .backUrls(backUrls)
                 .items(itemsPasarela)
                 .metadata(Map.of("id_pedido", pedidoGuardado.getId()))
-                .notificationUrl("https://d92194fd0109.ngrok-free.app")
+                .notificationUrl("https://26738d392844.ngrok-free.app")
                 .build();
 
         // Crear preferencia en MercadoPago
@@ -338,10 +269,23 @@ public class PedidoServiceImpl implements PedidoService {
                 Pedido pedido = pedidoRepository.findById(idPedido)
                         .orElseThrow(() -> new PedidoException("Pedido no encontrado: " + idPedido));
 
+                // Mapear el pago recibido
                 Pago pago = PagoMapper.toPago(payment);
                 pedido.setPago(pago);
 
+                // Actualizar total según pasarela
                 pedido.setTotal(BigDecimal.valueOf(payment.getTransactionAmount().doubleValue()));
+
+                // Actualizar estado del pedido según estado del pago
+                switch (payment.getStatus()) {
+                    case "approved" -> pedido.setEstado(EstadoPedido.CONFIRMADO);
+                    case "rejected" -> pedido.setEstado(EstadoPedido.CANCELADO);
+                    case "in_process" -> pedido.setEstado(EstadoPedido.PENDIENTE);
+                    default -> {
+                        // Mantener estado actual o loggear
+                        System.out.printf("Estado de pago no mapeado: %s%n", payment.getStatus());
+                    }
+                }
 
                 pedidoRepository.save(pedido);
             }

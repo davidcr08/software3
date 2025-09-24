@@ -4,6 +4,7 @@ import jakarta.validation.constraints.FutureOrPresent;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
+import uniquindio.product.model.enums.EstadoPedido;
 
 import java.time.LocalDate;
 import java.time.OffsetDateTime;
@@ -24,6 +25,5 @@ public record CrearPedidoDTO(
         @Size(min = 1, message = "El pedido debe tener al menos un detalle.")
         List<DetallePedidoDTO> detallePedido,
 
-        @NotNull(message = "La información del pago es obligatoria.")
         PagoDTO pago
 ) {}
