@@ -5,6 +5,7 @@ import jakarta.validation.constraints.NotNull;
 import lombok.*;
 import uniquindio.product.model.vo.DetallePedido;
 import uniquindio.product.model.vo.Pago;
+import uniquindio.product.model.enums.EstadoPedido;
 
 import java.math.BigDecimal;
 import java.time.OffsetDateTime;
@@ -37,8 +38,11 @@ public class Pedido {
     private OffsetDateTime fechaCreacion;
 
     @Embedded
-    @NotNull
     private Pago pago;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "estado_pedido")
+    private EstadoPedido estado;
 
     @ElementCollection(fetch = FetchType.LAZY)
     @CollectionTable(name = "pedido_detalles", joinColumns = @JoinColumn(name = "pedido_id"))
