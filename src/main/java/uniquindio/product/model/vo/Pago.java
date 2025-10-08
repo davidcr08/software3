@@ -22,7 +22,6 @@ import java.time.OffsetDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 public class Pago {
-    private String idPago;
 
     @Enumerated(EnumType.STRING)
     private Moneda moneda;
@@ -31,6 +30,7 @@ public class Pago {
     private TipoPago tipoPago;
 
     private String detalleEstado;
+
     private String codigoAutorizacion;
 
     @Column(name = "fecha_pago")

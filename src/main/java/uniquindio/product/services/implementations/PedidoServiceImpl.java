@@ -1,17 +1,10 @@
 package uniquindio.product.services.implementations;
 
-import com.mercadopago.MercadoPagoConfig;
-import com.mercadopago.client.payment.PaymentClient;
-import com.mercadopago.client.preference.PreferenceBackUrlsRequest;
-import com.mercadopago.client.preference.PreferenceClient;
-import com.mercadopago.client.preference.PreferenceItemRequest;
-import com.mercadopago.client.preference.PreferenceRequest;
-import com.mercadopago.resources.payment.Payment;
 import com.mercadopago.resources.preference.Preference;
-import org.springframework.beans.factory.annotation.Value;
+import lombok.extern.slf4j.Slf4j;
 import uniquindio.product.dto.pedido.*;
-import uniquindio.product.mapper.PagoMapper;
 import uniquindio.product.mapper.PedidoMapper;
+import uniquindio.product.model.enums.EstadoPago;
 import uniquindio.product.model.enums.EstadoPedido;
 import uniquindio.product.exceptions.PedidoException;
 import uniquindio.product.exceptions.ProductoException;
@@ -25,28 +18,25 @@ import uniquindio.product.model.vo.Pago;
 import uniquindio.product.repositories.CarritoRepository;
 import uniquindio.product.repositories.PedidoRepository;
 import uniquindio.product.repositories.ProductoRepository;
+import uniquindio.product.services.interfaces.PasarelaPagoPort;
 import uniquindio.product.services.interfaces.PedidoService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.math.BigDecimal;
 import java.time.OffsetDateTime;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 @Service
 @Transactional
 @RequiredArgsConstructor
+@Slf4j
 public class PedidoServiceImpl implements PedidoService {
-
-    @Value("${mercadopago.access.token}")
-    private String mercadoPagoToken;
 
     private final PedidoRepository pedidoRepository;
     private final CarritoRepository carritoRepository;
     private final ProductoRepository productoRepository;
+    private final PasarelaPagoPort pasarelaPagoPort;
 
     @Override
     public MostrarPedidoDTO crearPedidoDesdeCarrito(String idCliente)
@@ -62,7 +52,6 @@ public class PedidoServiceImpl implements PedidoService {
         // Convertimos los items del carrito en detalle del pedido
         List<DetallePedidoDTO> detallesPedidoDTO = convertirCarritoADetallePedidoDTO(carrito.getItems());
 
-        // 🚨 Aquí ya no generamos pago simulado
         CrearPedidoDTO pedidoDTO = new CrearPedidoDTO(
                 idCliente,
                 null, // código pasarela, se llenará al crear la preferencia en MercadoPago
@@ -163,135 +152,46 @@ public class PedidoServiceImpl implements PedidoService {
                 .orElseThrow(() -> new PedidoException("No se encontró el pedido con ID: " + id));
     }
 
-    /**
-     * Calcula el total del carrito sumando el valor de cada producto multiplicado por su cantidad.
-     *
-     * @param carrito carrito del usuario que contiene los ítems seleccionados.
-     * @return total del carrito como BigDecimal.
-     * @throws ProductoException si alguno de los productos no existe en la base de datos.
-     */
-    private BigDecimal calcularTotalCarrito(Carrito carrito) throws ProductoException {
-        if (carrito == null || carrito.getItems().isEmpty()) {
-            return BigDecimal.ZERO;
-        }
-
-        return carrito.getItems().stream()
-                .map(item -> {
-                    Producto producto = productoRepository.findById(item.getIdProducto())
-                            .orElseThrow(() -> new ProductoException("Producto no encontrado: " + item.getIdProducto()));
-
-                    // Manejo null-safe del precio (producto.getValor() es Double)
-                    Double valorDouble = producto.getValor();
-                    BigDecimal precio = valorDouble != null
-                            ? BigDecimal.valueOf(valorDouble)
-                            : BigDecimal.ZERO;
-
-                    return precio.multiply(BigDecimal.valueOf(item.getCantidad()));
-                })
-                .reduce(BigDecimal.ZERO, BigDecimal::add);
-    }
-
     //----------------------PAGO--------------------------------------------------
 
     @Override
-    public Preference realizarPago(String idPedido) throws Exception {
-
-        // Obtener el pedido guardado en la base de datos
-        Pedido pedidoGuardado = pedidoRepository.findById(idPedido)
+    public Preference realizarPago(String idPedido) throws PedidoException {
+        Pedido pedido = pedidoRepository.findById(idPedido)
                 .orElseThrow(() -> new PedidoException("Pedido no encontrado: " + idPedido));
 
-        List<PreferenceItemRequest> itemsPasarela = new ArrayList<>();
+        Preference preference = pasarelaPagoPort.crearPreferencia(pedido);
 
-        // Recorrer los detalles del pedido y crear ítems de la pasarela
-        for (DetallePedido item : pedidoGuardado.getDetalle()) {
-
-            // Obtener producto asociado al ítem
-            Producto producto = productoRepository.findById(item.getIdProducto())
-                    .orElseThrow(() -> new ProductoException("Producto no encontrado: " + item.getIdProducto()));
-
-            // Crear ítem de MercadoPago
-            PreferenceItemRequest itemRequest = PreferenceItemRequest.builder()
-                    .id(producto.getIdProducto())
-                    .title(producto.getNombreProducto())
-                    .pictureUrl(producto.getImagenProducto())
-                    .categoryId(producto.getTipo().name())
-                    .quantity(item.getCantidad())
-                    .currencyId("COP")
-                    .unitPrice(item.getPrecioUnitario()) // ya es BigDecimal
-                    .build();
-
-            itemsPasarela.add(itemRequest);
-        }
-
-        // Configurar credenciales
-        MercadoPagoConfig.setAccessToken(mercadoPagoToken);
-
-        // Configurar URLs de retorno
-        PreferenceBackUrlsRequest backUrls = PreferenceBackUrlsRequest.builder()
-                .success("URL PAGO EXITOSO")
-                .failure("URL PAGO FALLIDO")
-                .pending("URL PAGO PENDIENTE")
-                .build();
-
-        // Construir preferencia
-        PreferenceRequest preferenceRequest = PreferenceRequest.builder()
-                .backUrls(backUrls)
-                .items(itemsPasarela)
-                .metadata(Map.of("id_pedido", pedidoGuardado.getId()))
-                .notificationUrl("https://26738d392844.ngrok-free.app")
-                .build();
-
-        // Crear preferencia en MercadoPago
-        PreferenceClient client = new PreferenceClient();
-        Preference preference = client.create(preferenceRequest);
-
-        // Guardar código de pasarela en el pedido
-        pedidoGuardado.setCodigoPasarela(preference.getId());
-        pedidoRepository.save(pedidoGuardado);
+        pedido.setCodigoPasarela(preference.getId());
+        pedidoRepository.save(pedido);
 
         return preference;
     }
 
     @Override
-    public void recibirNotificacionMercadoPago(Map<String, Object> request) {
-        try {
-            Object tipo = request.get("type");
-
-            if ("payment".equals(tipo)) {
-                String input = request.get("data").toString();
-                String idPago = input.replaceAll("\\D+", "");
-
-                PaymentClient client = new PaymentClient();
-                Payment payment = client.get(Long.parseLong(idPago));
-
-                String idPedido = payment.getMetadata().get("id_pedido").toString();
-
-                Pedido pedido = pedidoRepository.findById(idPedido)
-                        .orElseThrow(() -> new PedidoException("Pedido no encontrado: " + idPedido));
-
-                // Mapear el pago recibido
-                Pago pago = PagoMapper.toPago(payment);
-                pedido.setPago(pago);
-
-                // Actualizar total según pasarela
-                pedido.setTotal(BigDecimal.valueOf(payment.getTransactionAmount().doubleValue()));
-
-                // Actualizar estado del pedido según estado del pago
-                switch (payment.getStatus()) {
-                    case "approved" -> pedido.setEstado(EstadoPedido.CONFIRMADO);
-                    case "rejected" -> pedido.setEstado(EstadoPedido.CANCELADO);
-                    case "in_process" -> pedido.setEstado(EstadoPedido.PENDIENTE);
-                    default -> {
-                        // Mantener estado actual o loggear
-                        System.out.printf("Estado de pago no mapeado: %s%n", payment.getStatus());
-                    }
-                }
-
-                pedidoRepository.save(pedido);
-            }
-
-        } catch (Exception e) {
-            e.printStackTrace();
+    public void recibirNotificacionMercadoPago(NotificacionPagoDTO notificacion) throws PedidoException {
+        if (!"payment".equals(notificacion.type())) {
+            log.info("Notificación ignorada: {}", notificacion.type());
+            return;
         }
+
+        Pago pago = pasarelaPagoPort.obtenerPago(notificacion.data().id());
+        String idPedido = pago.getIdPago(); // O extraer del metadata según tu mapper
+
+        Pedido pedido = pedidoRepository.findById(idPedido)
+                .orElseThrow(() -> new PedidoException("Pedido no encontrado: " + idPedido));
+
+        pedido.setPago(pago);
+        pedido.setTotal(pago.getValorTransaccion());
+        pedido.setEstado(mapEstadoPedido(pago.getEstado()));
+
+        pedidoRepository.save(pedido);
+    }
+
+    private EstadoPedido mapEstadoPedido(EstadoPago estadoPago) {
+        return switch (estadoPago) {
+            case APROBADO -> EstadoPedido.CONFIRMADO;
+            case RECHAZADO -> EstadoPedido.CANCELADO;
+            default -> EstadoPedido.PENDIENTE;
+        };
     }
 }
