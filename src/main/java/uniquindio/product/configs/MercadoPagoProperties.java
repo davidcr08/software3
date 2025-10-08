@@ -12,4 +12,7 @@ import org.springframework.stereotype.Component;
 public class MercadoPagoProperties {
     private String token;
     private String notificationUrl;
+    private String successUrl;
+    private String failureUrl;
+    private String pendingUrl;
 }
