@@ -23,6 +23,8 @@ import java.time.OffsetDateTime;
 @AllArgsConstructor
 public class Pago {
 
+    private String idPago;
+
     @Enumerated(EnumType.STRING)
     private Moneda moneda;
 
