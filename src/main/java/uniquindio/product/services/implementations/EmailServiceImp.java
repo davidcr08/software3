@@ -53,7 +53,7 @@ public class EmailServiceImp implements EmailService {
                 "<table role=\"presentation\" class=\"container\" border=\"0\" cellpadding=\"0\" cellspacing=\"0\">" +
                 "<tr>" +
                 "<td class=\"header\">" +
-                "Hola" +
+                "Codigo de verificacion" +
                 "</td>" +
                 "</tr>" +
                 "<tr>" +
@@ -63,7 +63,7 @@ public class EmailServiceImp implements EmailService {
                 "</tr>" +
                 "<tr>" +
                 "<td class=\"footer\">" +
-                "&copy; 2024 - UniEventos" +
+                "&copy; 2025 - Essentia" +
                 "</td>" +
                 "</tr>" +
                 "</table>" +
