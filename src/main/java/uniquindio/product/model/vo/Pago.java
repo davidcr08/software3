@@ -13,7 +13,6 @@ import uniquindio.product.model.enums.Moneda;
 import uniquindio.product.model.enums.TipoPago;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
 
 @Embeddable
@@ -22,6 +21,8 @@ import java.time.OffsetDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 public class Pago {
+
+    private String idPago;
 
     @Enumerated(EnumType.STRING)
     private Moneda moneda;
