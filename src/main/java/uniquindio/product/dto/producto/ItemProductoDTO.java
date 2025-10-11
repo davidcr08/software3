@@ -6,7 +6,7 @@ public record ItemProductoDTO(
         String idProducto,
         String nombreProducto,
         String imagenProducto,
-        Integer cantidad,
+        String descripcion,
         Double valor,
         TipoProducto tipo
 ) {}

@@ -31,8 +31,8 @@ public class Producto {
     @Column(name = "imagenProducto")
     private String imagenProducto;
 
-    @Column(name = "cantidad")
-    private Integer cantidad;
+    @Column(name = "descripcion")
+    private String descripcion;
 
     @Column(name = "ultimaFechaModificacion")
     private LocalDateTime ultimaFechaModificacion;

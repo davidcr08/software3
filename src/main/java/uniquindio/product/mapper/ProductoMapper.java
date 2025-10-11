@@ -1,6 +1,7 @@
 package uniquindio.product.mapper;
 
 import uniquindio.product.dto.producto.CrearProductoDTO;
+import uniquindio.product.dto.producto.EditarProductoDTO;
 import uniquindio.product.dto.producto.ItemProductoDTO;
 import uniquindio.product.dto.producto.ProductoDetalleDTO;
 import uniquindio.product.model.documents.Producto;
@@ -13,7 +14,7 @@ public class ProductoMapper {
         Producto producto = new Producto();
         producto.setNombreProducto(dto.nombre());
         producto.setImagenProducto(dto.imagenProducto());
-        producto.setCantidad(dto.cantidad());
+        producto.setDescripcion(dto.descripcion());
         producto.setValor(dto.valor());
         producto.setTipo(dto.tipo());
         return producto;
@@ -24,7 +25,7 @@ public class ProductoMapper {
                 producto.getIdProducto(),
                 producto.getNombreProducto(),
                 producto.getImagenProducto(),
-                producto.getCantidad(),
+                producto.getDescripcion(),
                 producto.getUltimaFechaModificacion(),
                 producto.getValor(),
                 producto.getTipo()
@@ -36,9 +37,17 @@ public class ProductoMapper {
                 producto.getIdProducto(),
                 producto.getNombreProducto(),
                 producto.getImagenProducto(),
-                producto.getCantidad(),
+                producto.getDescripcion(),
                 producto.getValor(),
                 producto.getTipo()
         );
+    }
+
+    public static void updateEntity(Producto producto, EditarProductoDTO dto) {
+        producto.setNombreProducto(dto.nombre());
+        producto.setImagenProducto(dto.imagenProducto());
+        producto.setDescripcion(dto.descripcion());
+        producto.setValor(dto.valor());
+        producto.setTipo(dto.tipo());
     }
 }

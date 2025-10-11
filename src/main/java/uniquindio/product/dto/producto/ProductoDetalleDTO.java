@@ -7,7 +7,7 @@ public record ProductoDetalleDTO(
         String idProducto,
         String nombreProducto,
         String imagenProducto,
-        Integer cantidad,
+        String descripcion,
         LocalDateTime ultimaFechaModificacion,
         Double valor,
         TipoProducto tipo
