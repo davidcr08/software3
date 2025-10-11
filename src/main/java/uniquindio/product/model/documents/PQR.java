@@ -1,6 +1,7 @@
 package uniquindio.product.model.documents;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotBlank;
 import lombok.Getter;
 import lombok.Setter;
 import uniquindio.product.model.enums.CategoriaPqr;
@@ -24,12 +25,14 @@ public class PQR {
 
     @Enumerated(EnumType.STRING)
     @Column(name = "categoria", nullable = false)
+
     private CategoriaPqr categoria;
 
     /*
      * SOLO PERMITE UN MAXIMO DE 3000 CARACTERES
      */
     @Column(name = "descripcion", nullable = false, length = 3000)
+    @NotBlank(message = "La descripción no puede estar vacía")
     private String descripcion;
 
     @Column(name = "idWorker")
@@ -42,6 +45,13 @@ public class PQR {
     private LocalDateTime fechaRespuesta;
 
     @Enumerated(EnumType.STRING)
+
     @Column(name = "estadoPqr", nullable = false)
     private EstadoPqr estadoPqr;
+
+    public void prePersist() {
+        if (fechaCreacion == null) {
+            fechaCreacion = LocalDateTime.now();
+        }
+    }
 }

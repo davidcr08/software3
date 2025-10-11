@@ -18,6 +18,7 @@ public class SmtpProperties {
 
     @PostConstruct
     public void check() {
-        System.out.println("SMTP config -> user=" + username + ", pass=" + (password != null ? "******" : "NULL"));
+        String passDisplay = password != null ? "******" : "NULL";
+        System.out.println("SMTP config -> user=" + username + ", pass=" + passDisplay);
     }
 }
