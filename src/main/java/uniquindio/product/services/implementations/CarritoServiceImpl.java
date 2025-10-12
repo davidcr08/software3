@@ -15,6 +15,7 @@ import uniquindio.product.services.interfaces.CarritoService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import uniquindio.product.services.interfaces.InventarioService;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -27,6 +28,7 @@ public class CarritoServiceImpl implements CarritoService {
     private final CarritoRepository carritoRepository;
     private final ProductoRepository productoRepository;
     private final UsuarioRepository usuarioRepository;
+    private final InventarioService inventarioService;
 
     @Override
     public void crearCarrito(CrearCarritoDTO carritoDTO) throws CarritoException {
@@ -66,6 +68,16 @@ public class CarritoServiceImpl implements CarritoService {
     public CarritoDTO agregarItemsAlCarrito(String idUsuario, List<DetalleCarritoDTO> nuevosItemsDTO) throws CarritoException {
         if (nuevosItemsDTO == null || nuevosItemsDTO.isEmpty()) {
             throw new CarritoException("La lista de ítems no puede estar vacía.");
+        }
+
+        // Validar stock antes de agregar al carrito
+        for (DetalleCarritoDTO item : nuevosItemsDTO) {
+            if (!inventarioService.verificarDisponibilidad(item.idProducto(), item.cantidad())) {
+                Integer stockDisponible = inventarioService.obtenerStockDisponible(item.idProducto());
+                throw new CarritoException("Stock insuficiente para el producto: " + item.idProducto() +
+                        ". Stock disponible: " + stockDisponible +
+                        ", cantidad solicitada: " + item.cantidad());
+            }
         }
 
         Carrito carrito = obtenerCarritoEntity(idUsuario);

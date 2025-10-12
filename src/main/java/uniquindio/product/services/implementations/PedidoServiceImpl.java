@@ -3,6 +3,7 @@ package uniquindio.product.services.implementations;
 import com.mercadopago.resources.preference.Preference;
 import lombok.extern.slf4j.Slf4j;
 import uniquindio.product.dto.pedido.*;
+import uniquindio.product.exceptions.InventarioException;
 import uniquindio.product.mapper.PedidoMapper;
 import uniquindio.product.model.enums.EstadoPago;
 import uniquindio.product.model.enums.EstadoPedido;
@@ -18,6 +19,7 @@ import uniquindio.product.model.vo.Pago;
 import uniquindio.product.repositories.CarritoRepository;
 import uniquindio.product.repositories.PedidoRepository;
 import uniquindio.product.repositories.ProductoRepository;
+import uniquindio.product.services.interfaces.InventarioService;
 import uniquindio.product.services.interfaces.PasarelaPagoPort;
 import uniquindio.product.services.interfaces.PedidoService;
 import lombok.RequiredArgsConstructor;
@@ -37,6 +39,7 @@ public class PedidoServiceImpl implements PedidoService {
     private final CarritoRepository carritoRepository;
     private final ProductoRepository productoRepository;
     private final PasarelaPagoPort pasarelaPagoPort;
+    private final InventarioService inventarioService;
 
     @Override
     public MostrarPedidoDTO crearPedidoDesdeCarrito(String idCliente)
@@ -184,7 +187,23 @@ public class PedidoServiceImpl implements PedidoService {
         pedido.setTotal(pago.getValorTransaccion());
         pedido.setEstado(mapEstadoPedido(pago.getEstado()));
 
+        // Reducir stock solo si el pago fue aprobado
+        if (pago.getEstado() == EstadoPago.APROBADO) {
+            try {
+                reducirStockDelPedido(pedido);
+            } catch (ProductoException | InventarioException e) {
+                log.error("Error al reducir stock para el pedido {}: {}", idPedido, e.getMessage());
+                throw new PedidoException("Error al procesar el inventario del pedido: " + e.getMessage());
+            }
+        }
         pedidoRepository.save(pedido);
+    }
+
+    private void reducirStockDelPedido(Pedido pedido) throws ProductoException, InventarioException {
+        for (DetallePedido detalle : pedido.getDetalle()) {
+            inventarioService.reducirStock(detalle.getIdProducto(), detalle.getCantidad());
+        }
+        log.info("Stock reducido para todos los productos del pedido: {}", pedido.getId());
     }
 
     private EstadoPedido mapEstadoPedido(EstadoPago estadoPago) {
