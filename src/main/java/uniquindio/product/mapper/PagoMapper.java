@@ -11,7 +11,6 @@ import java.math.BigDecimal;
 public class PagoMapper {
 
     private PagoMapper() {
-        // Evita instanciación
     }
 
     public static Pago toPago(Payment payment) {

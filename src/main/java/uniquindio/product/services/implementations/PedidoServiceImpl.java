@@ -3,23 +3,17 @@ package uniquindio.product.services.implementations;
 import com.mercadopago.resources.preference.Preference;
 import lombok.extern.slf4j.Slf4j;
 import uniquindio.product.dto.pedido.*;
-import uniquindio.product.exceptions.InventarioException;
+import uniquindio.product.exceptions.*;
 import uniquindio.product.mapper.PedidoMapper;
+import uniquindio.product.model.documents.*;
+import uniquindio.product.model.enums.EstadoLote;
 import uniquindio.product.model.enums.EstadoPago;
 import uniquindio.product.model.enums.EstadoPedido;
-import uniquindio.product.exceptions.PedidoException;
-import uniquindio.product.exceptions.ProductoException;
-import uniquindio.product.model.documents.Carrito;
-import uniquindio.product.model.documents.Pedido;
-import uniquindio.product.model.documents.Producto;
 import uniquindio.product.model.vo.DetalleCarrito;
 import uniquindio.product.model.vo.DetallePedido;
-import uniquindio.product.exceptions.CarritoException;
 import uniquindio.product.model.vo.Pago;
-import uniquindio.product.repositories.CarritoRepository;
-import uniquindio.product.repositories.PedidoRepository;
-import uniquindio.product.repositories.ProductoRepository;
-import uniquindio.product.services.interfaces.InventarioService;
+import uniquindio.product.repositories.*;
+import uniquindio.product.services.interfaces.LoteService;
 import uniquindio.product.services.interfaces.PasarelaPagoPort;
 import uniquindio.product.services.interfaces.PedidoService;
 import lombok.RequiredArgsConstructor;
@@ -27,7 +21,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.OffsetDateTime;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Service
 @Transactional
@@ -38,8 +35,22 @@ public class PedidoServiceImpl implements PedidoService {
     private final PedidoRepository pedidoRepository;
     private final CarritoRepository carritoRepository;
     private final ProductoRepository productoRepository;
+    private final LoteRepository loteRepository;
     private final PasarelaPagoPort pasarelaPagoPort;
-    private final InventarioService inventarioService;
+    private final LoteService loteService;
+    private final InventarioRepository inventarioRepository;
+
+    private static final String INVENTARIO_ID = "inventario-principal";
+
+    private List<DetallePedidoDTO> convertirCarritoADetallePedidoDTO(List<DetalleCarrito> itemsCarrito) {
+        if (itemsCarrito == null || itemsCarrito.isEmpty()) {
+            throw new IllegalArgumentException("La lista de ítems del carrito no puede estar vacía.");
+        }
+
+        return itemsCarrito.stream()
+                .map(item -> new DetallePedidoDTO(item.getIdProducto(), item.getCantidad()))
+                .toList();
+    }
 
     @Override
     public MostrarPedidoDTO crearPedidoDesdeCarrito(String idCliente)
@@ -71,17 +82,9 @@ public class PedidoServiceImpl implements PedidoService {
         return pedidoCreado;
     }
 
-    private List<DetallePedidoDTO> convertirCarritoADetallePedidoDTO(List<DetalleCarrito> itemsCarrito) {
-        if (itemsCarrito == null || itemsCarrito.isEmpty()) {
-            throw new IllegalArgumentException("La lista de ítems del carrito no puede estar vacía.");
-        }
+    private MostrarPedidoDTO crearPedido(CrearPedidoDTO pedidoDTO)
+            throws ProductoException, LoteException {
 
-        return itemsCarrito.stream()
-                .map(item -> new DetallePedidoDTO(item.getIdProducto(), item.getCantidad()))
-                .toList();
-    }
-
-    private MostrarPedidoDTO crearPedido(CrearPedidoDTO pedidoDTO) throws ProductoException {
         List<String> idsProductos = pedidoDTO.detallePedido().stream()
                 .map(DetallePedidoDTO::idProducto)
                 .toList();
@@ -92,43 +95,74 @@ public class PedidoServiceImpl implements PedidoService {
             throw new ProductoException("Uno o más productos no existen en la base de datos.");
         }
 
-        Pedido pedido = PedidoMapper.toEntity(pedidoDTO, productos);
-        pedido.setEstado(EstadoPedido.PENDIENTE); // Estado inicial
-        pedido.setPago(null);          // Pago aún no registrado
+        // Seleccionar lotes con FEFO (solo verifica disponibilidad, NO reduce)
+        Map<String, Lote> lotesAsignados = new HashMap<>();
+        for (DetallePedidoDTO item : pedidoDTO.detallePedido()) {
+            // Selecciona el lote más próximo a vencer con stock suficiente
+            Lote lote = loteService.seleccionarLoteFEFO(item.idProducto(), item.cantidad());
+            lotesAsignados.put(item.idProducto(), lote);
+        }
+
+        // Crear pedido con lotes asignados
+        Pedido pedido = PedidoMapper.toEntity(pedidoDTO, productos, lotesAsignados);
+        pedido.setEstado(EstadoPedido.PENDIENTE);
+        pedido.setPago(null);
         pedido.setCodigoPasarela(null);
 
         Pedido pedidoGuardado = pedidoRepository.save(pedido);
 
-        return PedidoMapper.toMostrarPedidoDTO(pedidoGuardado, "Cliente Temporal", productos);
+        log.info("Pedido creado (stock NO reducido aún): {} - Cliente: {}",
+                pedidoGuardado.getId(),
+                pedidoDTO.idCliente());
+
+        List<Lote> lotes = new ArrayList<>(lotesAsignados.values());
+
+        return PedidoMapper.toMostrarPedidoDTO(pedidoGuardado, productos, lotes);
     }
 
     @Override
     public MostrarPedidoDTO mostrarPedido(String idPedido) throws ProductoException, PedidoException {
         Pedido pedido = obtenerPedidoPorId(idPedido);
 
-        // Obtenemos todos los productos referenciados de una sola vez (mejor performance que dentro del for)
         List<String> idsProductos = pedido.getDetalle().stream()
                 .map(DetallePedido::getIdProducto)
+                .distinct()
+                .toList();
+
+        List<String> idsLotes = pedido.getDetalle().stream()
+                .map(DetallePedido::getIdLote)
+                .distinct()
                 .toList();
 
         List<Producto> productos = productoRepository.findAllById(idsProductos);
+        List<Lote> lotes = loteRepository.findAllById(idsLotes);
 
-        return PedidoMapper.toMostrarPedidoDTO(pedido, productos);
+        return PedidoMapper.toMostrarPedidoDTO(pedido, productos, lotes);
     }
-
 
     @Override
     public List<PedidoResponseDTO> obtenerPedidosPorCliente(String idCliente) throws ProductoException {
         List<Pedido> pedidos = pedidoRepository.findByIdCliente(idCliente);
 
+        if (pedidos.isEmpty()) {
+            return List.of();
+        }
+
         List<String> idsProductos = pedidos.stream()
                 .flatMap(p -> p.getDetalle().stream().map(DetallePedido::getIdProducto))
+                .distinct()
+                .toList();
+
+        List<String> idsLotes = pedidos.stream()
+                .flatMap(p -> p.getDetalle().stream().map(DetallePedido::getIdLote))
+                .distinct()
                 .toList();
 
         List<Producto> productos = productoRepository.findAllById(idsProductos);
+        List<Lote> lotes = loteRepository.findAllById(idsLotes);
 
         return pedidos.stream()
-                .map(pedido -> PedidoMapper.toPedidoResponseDTO(pedido, productos))
+                .map(pedido -> PedidoMapper.toPedidoResponseDTO(pedido, productos, lotes))
                 .toList();
     }
 
@@ -191,7 +225,7 @@ public class PedidoServiceImpl implements PedidoService {
         if (pago.getEstado() == EstadoPago.APROBADO) {
             try {
                 reducirStockDelPedido(pedido);
-            } catch (ProductoException | InventarioException e) {
+            } catch (ProductoException | LoteException | InventarioException e) {
                 log.error("Error al reducir stock para el pedido {}: {}", idPedido, e.getMessage());
                 throw new PedidoException("Error al procesar el inventario del pedido: " + e.getMessage());
             }
@@ -199,11 +233,53 @@ public class PedidoServiceImpl implements PedidoService {
         pedidoRepository.save(pedido);
     }
 
-    private void reducirStockDelPedido(Pedido pedido) throws ProductoException, InventarioException {
+    private void reducirStockDelPedido(Pedido pedido)
+            throws ProductoException, LoteException, InventarioException {
+
+        // Obtener inventario
+        Inventario inventario = inventarioRepository.findById(INVENTARIO_ID)
+                .orElseThrow(() -> new InventarioException("Inventario no inicializado"));
+
         for (DetallePedido detalle : pedido.getDetalle()) {
-            inventarioService.reducirStock(detalle.getIdProducto(), detalle.getCantidad());
+            int cantidadRestante = detalle.getCantidad();
+
+            while (cantidadRestante > 0) {
+                // Seleccionar lote FEFO
+                Lote loteSeleccionado = loteService.seleccionarLoteFEFO(
+                        detalle.getIdProducto(),
+                        cantidadRestante
+                );
+
+                int cantidadLote = loteSeleccionado.getCantidadDisponible();
+                int cantidadADescontar = Math.min(cantidadLote, cantidadRestante);
+
+                //Reducir en Inventario (almacén físico)
+                inventario.reducirCantidadLote(loteSeleccionado.getId(), cantidadADescontar);
+
+                //Reducir en Lote (registro de producción)
+                loteSeleccionado.setCantidadDisponible(
+                        loteSeleccionado.getCantidadDisponible() - cantidadADescontar
+                );
+
+                if (loteSeleccionado.getCantidadDisponible() == 0) {
+                    loteSeleccionado.setEstado(EstadoLote.AGOTADO);
+                }
+
+                loteRepository.save(loteSeleccionado);
+
+                cantidadRestante -= cantidadADescontar;
+
+                log.debug("Reducido {} unidades del lote {} (quedan {})",
+                        cantidadADescontar,
+                        loteSeleccionado.getCodigoLote(),
+                        loteSeleccionado.getCantidadDisponible());
+            }
         }
-        log.info("Stock reducido para todos los productos del pedido: {}", pedido.getId());
+
+        // Guardar inventario actualizado
+        inventarioRepository.save(inventario);
+
+        log.info("Stock reducido correctamente (Inventario + Lotes) para el pedido: {}", pedido.getId());
     }
 
     private EstadoPedido mapEstadoPedido(EstadoPago estadoPago) {

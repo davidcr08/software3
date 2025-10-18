@@ -72,19 +72,25 @@ public class CarritoServiceImpl implements CarritoService {
 
         // Validar stock antes de agregar al carrito
         for (DetalleCarritoDTO item : nuevosItemsDTO) {
-            if (!inventarioService.verificarDisponibilidad(item.idProducto(), item.cantidad())) {
-                Integer stockDisponible = inventarioService.obtenerStockDisponible(item.idProducto());
-                throw new CarritoException("Stock insuficiente para el producto: " + item.idProducto() +
-                        ". Stock disponible: " + stockDisponible +
-                        ", cantidad solicitada: " + item.cantidad());
+            Integer stockDisponible;
+            try {
+                stockDisponible = inventarioService.obtenerStockDisponible(item.idProducto());
+            } catch (ProductoException e) {
+                throw new CarritoException("Error al verificar stock del producto: " + item.idProducto());
+            }
+
+            if (stockDisponible < item.cantidad()) {
+                throw new CarritoException(
+                        "Stock insuficiente para el producto: " + item.idProducto() +
+                                ". Stock disponible: " + stockDisponible +
+                                ", cantidad solicitada: " + item.cantidad()
+                );
             }
         }
 
         Carrito carrito = obtenerCarritoEntity(idUsuario);
 
-        nuevosItemsDTO.forEach(dto -> {
-            carrito.agregarOActualizarItem(new DetalleCarrito(dto.idProducto(), dto.cantidad()));
-        });
+        nuevosItemsDTO.forEach(dto -> carrito.agregarOActualizarItem(new DetalleCarrito(dto.idProducto(), dto.cantidad())));
 
         Carrito actualizado = carritoRepository.saveAndFlush(carrito);
 

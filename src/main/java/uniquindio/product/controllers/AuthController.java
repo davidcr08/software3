@@ -30,7 +30,7 @@ public class AuthController {
     public ResponseEntity<MensajeDTO<String>> crearCuenta(@Valid @RequestBody CrearUsuarioDTO usuarioDTO)
             throws UsuarioException, CarritoException, EmailException {
         usuarioService.crearUsuario(usuarioDTO);
-        return ResponseEntity.ok(new MensajeDTO<>(true, "Cuenta creada correctamente"));
+        return ResponseEntity.ok(new MensajeDTO<>(false, "Cuenta creada correctamente"));
     }
 
     /**
@@ -43,7 +43,7 @@ public class AuthController {
     public ResponseEntity<MensajeDTO<String>> validarCodigo(@Valid @RequestBody ValidarCodigoDTO validarCodigoDTO)
             throws UsuarioException, EmailException {
         usuarioService.validarCodigo(validarCodigoDTO);
-        return ResponseEntity.ok(new MensajeDTO<>(true, "Cuenta activada con éxito"));
+        return ResponseEntity.ok(new MensajeDTO<>(false, "Cuenta activada con éxito"));
     }
 
     /**
@@ -57,7 +57,7 @@ public class AuthController {
             @Valid @RequestBody CodigoContraseniaDTO codigoContraseniaDTO) throws UsuarioException, EmailException {
 
         usuarioService.enviarCodigoRecuperacionPassword(codigoContraseniaDTO);
-        return ResponseEntity.ok(new MensajeDTO<>(true, "Código enviado correctamente al correo electrónico."));
+        return ResponseEntity.ok(new MensajeDTO<>(false, "Código enviado correctamente al correo electrónico."));
     }
 
     /**
@@ -69,7 +69,7 @@ public class AuthController {
     @PutMapping("/cambiar-password")
     public ResponseEntity<MensajeDTO<String>> cambiarPassword(@Valid @RequestBody CambiarPasswordDTO cambiarPasswordDTO) throws UsuarioException, EmailException {
             usuarioService.cambiarPassword(cambiarPasswordDTO);
-            return ResponseEntity.ok(new MensajeDTO<>(true, "Contraseña modificada con éxito"));
+            return ResponseEntity.ok(new MensajeDTO<>(false, "Contraseña modificada con éxito"));
     }
 
     //==================================== METODOS AUTENTICACION =============================================//

@@ -10,6 +10,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.math.BigDecimal;
+import java.util.Objects;
 
 @Embeddable
 @Getter
@@ -18,8 +19,11 @@ import java.math.BigDecimal;
 @AllArgsConstructor
 public class DetallePedido {
 
-    @Column(name = "id_producto", nullable = false)
+    @Column(name = "id_producto", nullable = false, length = 36)
     private String idProducto;
+
+    @Column(name = "id_lote", nullable = false, length = 36)
+    private String idLote;
 
     @Column(name = "cantidad", nullable = false)
     @NotNull
@@ -29,4 +33,17 @@ public class DetallePedido {
     @Column(name = "precio_unitario", nullable = false, precision = 19, scale = 4)
     @NotNull
     private BigDecimal precioUnitario;
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof DetallePedido that)) return false;
+        return Objects.equals(idProducto, that.idProducto) &&
+                Objects.equals(idLote, that.idLote);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(idProducto, idLote);
+    }
 }

@@ -3,7 +3,6 @@ package uniquindio.product.services.interfaces;
 import uniquindio.product.dto.carrito.*;
 import uniquindio.product.exceptions.CarritoException;
 import uniquindio.product.exceptions.ProductoException;
-import uniquindio.product.model.documents.Carrito;
 
 import java.util.List;
 

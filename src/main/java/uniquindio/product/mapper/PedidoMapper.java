@@ -1,14 +1,16 @@
 package uniquindio.product.mapper;
 
 import uniquindio.product.dto.pedido.*;
+import uniquindio.product.model.documents.Lote;
 import uniquindio.product.model.documents.Pedido;
 import uniquindio.product.model.documents.Producto;
 import uniquindio.product.model.vo.DetallePedido;
-import uniquindio.product.model.vo.Pago;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 public final class PedidoMapper {
 
@@ -16,33 +18,24 @@ public final class PedidoMapper {
         throw new UnsupportedOperationException("Utility class");
     }
 
-    public static MostrarPedidoDTO toMostrarPedidoDTO(Pedido pedido, String nombreCliente, List<Producto> productos) {
-        Objects.requireNonNull(pedido, "El pedido no puede ser nulo");
-        Objects.requireNonNull(productos, "La lista de productos no puede ser nula");
+    public static MostrarPedidoDTO toMostrarPedidoDTO(Pedido pedido, List<Producto> productos, List<Lote> lotes) {
+        validatePedidoData(pedido, productos, lotes);
 
-        List<MostrarDetallePedidoDTO> detalles = pedido.getDetalle().stream()
-                .map(detalle -> toMostrarDetallePedidoDTO(detalle, productos))
-                .toList();
+        List<MostrarDetallePedidoDTO> detalles = buildDetalles(pedido, productos, lotes);
 
         return new MostrarPedidoDTO(
                 pedido.getId(),
-                nombreCliente,
+                pedido.getIdCliente(),
                 pedido.getFechaCreacion(),
                 pedido.getTotal(),
                 detalles
         );
     }
 
-    public static MostrarPedidoDTO toMostrarPedidoDTO(Pedido pedido, List<Producto> productos) {
-        return toMostrarPedidoDTO(pedido, pedido.getIdCliente(), productos);
-    }
+    public static PedidoResponseDTO toPedidoResponseDTO(Pedido pedido, List<Producto> productos, List<Lote> lotes) {
+        validatePedidoData(pedido, productos, lotes);
 
-    public static PedidoResponseDTO toPedidoResponseDTO(Pedido pedido, List<Producto> productos) {
-        Objects.requireNonNull(pedido, "El pedido no puede ser nulo");
-
-        List<MostrarDetallePedidoDTO> detalles = pedido.getDetalle().stream()
-                .map(detalle -> toMostrarDetallePedidoDTO(detalle, productos))
-                .toList();
+        List<MostrarDetallePedidoDTO> detalles = buildDetalles(pedido, productos, lotes);
 
         return new PedidoResponseDTO(
                 pedido.getId(),
@@ -54,20 +47,30 @@ public final class PedidoMapper {
         );
     }
 
-    public static Pedido toEntity(CrearPedidoDTO pedidoDTO, List<Producto> productos) {
+
+    public static Pedido toEntity(CrearPedidoDTO pedidoDTO, List<Producto> productos, Map<String, Lote> lotesAsignados) {
         Objects.requireNonNull(pedidoDTO, "El DTO del pedido no puede ser nulo");
+        Objects.requireNonNull(productos, "La lista de productos no puede ser nula");
+        Objects.requireNonNull(lotesAsignados, "Los lotes asignados no pueden ser nulos");
+
+        Map<String, Producto> productoMap = productos.stream()
+                .collect(Collectors.toMap(Producto::getIdProducto, p -> p));
 
         List<DetallePedido> detalles = pedidoDTO.detallePedido().stream()
                 .map(dto -> {
-                    Producto producto = productos.stream()
-                            .filter(p -> p.getIdProducto().equals(dto.idProducto()))
-                            .findFirst()
-                            .orElseThrow(() -> new IllegalArgumentException(
-                                    "Producto no encontrado: " + dto.idProducto()
-                            ));
+                    Producto producto = productoMap.get(dto.idProducto());
+                    if (producto == null) {
+                        throw new IllegalArgumentException("Producto no encontrado: " + dto.idProducto());
+                    }
+
+                    Lote lote = lotesAsignados.get(dto.idProducto());
+                    if (lote == null) {
+                        throw new IllegalArgumentException("No se asignó lote al producto: " + dto.idProducto());
+                    }
 
                     return new DetallePedido(
                             producto.getIdProducto(),
+                            lote.getId(),
                             dto.cantidad(),
                             BigDecimal.valueOf(producto.getValor())
                     );
@@ -83,18 +86,19 @@ public final class PedidoMapper {
         pedido.setCodigoPasarela(pedidoDTO.codigoPasarela());
         pedido.setFechaCreacion(pedidoDTO.fechaCreacion());
         pedido.setDetalle(detalles);
-        pedido.setPago(null); // inicialmente null
         pedido.setTotal(total);
+        pedido.setPago(null);
 
         return pedido;
     }
 
-
-    private static MostrarDetallePedidoDTO toMostrarDetallePedidoDTO(DetallePedido detalle, List<Producto> productos) {
-        Producto producto = productos.stream()
-                .filter(p -> p.getIdProducto().equals(detalle.getIdProducto()))
-                .findFirst()
-                .orElse(null);
+    private static MostrarDetallePedidoDTO toMostrarDetallePedidoDTO(
+            DetallePedido detalle,
+            Map<String, Producto> productoMap,
+            Map<String, Lote> loteMap
+    ) {
+        Producto producto = productoMap.get(detalle.getIdProducto());
+        Lote lote = loteMap.get(detalle.getIdLote());
 
         BigDecimal subtotal = detalle.getPrecioUnitario()
                 .multiply(BigDecimal.valueOf(detalle.getCantidad()));
@@ -106,7 +110,41 @@ public final class PedidoMapper {
                 producto != null ? producto.getImagenProducto() : null,
                 detalle.getPrecioUnitario(),
                 detalle.getCantidad(),
-                subtotal
+                subtotal,
+                detalle.getIdLote(),
+                lote != null ? lote.getCodigoLote() : null,
+                lote != null ? lote.getFechaVencimiento() : null
         );
+    }
+
+// ============================
+// Métodos privados auxiliares
+// ============================
+
+    private static void validatePedidoData(Pedido pedido, List<Producto> productos, List<Lote> lotes) {
+        Objects.requireNonNull(pedido, "El pedido no puede ser nulo");
+        Objects.requireNonNull(productos, "La lista de productos no puede ser nula");
+        Objects.requireNonNull(lotes, "La lista de lotes no puede ser nula");
+
+        if (pedido.getDetalle() == null || pedido.getDetalle().isEmpty()) {
+            throw new IllegalArgumentException("El pedido no contiene detalles");
+        }
+    }
+
+    private static List<MostrarDetallePedidoDTO> buildDetalles(
+            Pedido pedido,
+            List<Producto> productos,
+            List<Lote> lotes
+    ) {
+        // Pre-construir maps para acceso O(1)
+        Map<String, Producto> productoMap = productos.stream()
+                .collect(Collectors.toMap(Producto::getIdProducto, p -> p));
+
+        Map<String, Lote> loteMap = lotes.stream()
+                .collect(Collectors.toMap(Lote::getId, l -> l));
+
+        return pedido.getDetalle().stream()
+                .map(detalle -> toMostrarDetallePedidoDTO(detalle, productoMap, loteMap))
+                .toList();
     }
 }

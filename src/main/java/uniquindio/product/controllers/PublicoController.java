@@ -26,13 +26,16 @@ public class PublicoController {
     @GetMapping("/productos")
     public ResponseEntity<MensajeDTO<List<ItemProductoDTO>>> listarProductos() throws ProductoException {
         List<ItemProductoDTO> productos = productoService.listarProductos();
+        if (productos.isEmpty()) {
+            return ResponseEntity.ok(new MensajeDTO<>(false, List.of()));
+        }
         return ResponseEntity.ok(new MensajeDTO<>(false, productos));
     }
 
     /**
      * Obtiene productos por tipo.
      */
-    @GetMapping("/productos/{tipo}")
+    @GetMapping("/productos/tipo/{tipo}")
     public ResponseEntity<MensajeDTO<List<ItemProductoDTO>>> obtenerProductosPorTipo(@PathVariable TipoProducto tipo) throws ProductoException {
         List<ItemProductoDTO> productos = productoService.obtenerProductosPorTipo(tipo);
         return ResponseEntity.ok(new MensajeDTO<>(false, productos));

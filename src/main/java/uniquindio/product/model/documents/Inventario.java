@@ -18,64 +18,83 @@ import java.util.Optional;
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
 public class Inventario {
 
-
     @Id
     @EqualsAndHashCode.Include
     @GeneratedValue(strategy = GenerationType.UUID)
     private String idInventario;
 
-
-
     @Column(name = "ultima_actualizacion")
     private LocalDateTime ultimaActualizacion;
-
 
     @ElementCollection(fetch = FetchType.LAZY)
     @CollectionTable(name = "detalle_inventario", joinColumns = @JoinColumn(name = "inventario_id"))
     private List<DetalleInventario> detalleInventario = new ArrayList<>();
 
-
-
-    public Optional<DetalleInventario> buscarDetallePorProducto(String idProducto) {
+    // Buscar detalle por lote específico
+    public Optional<DetalleInventario> buscarDetallePorLote(String idLote) {
         return detalleInventario.stream()
-                .filter(detalle -> detalle.getIdProducto().equals(idProducto))
+                .filter(detalle -> detalle.getIdLote().equals(idLote))
                 .findFirst();
     }
 
-    public boolean tieneStockSuficiente(String idProducto, Integer cantidadRequerida) {
-        return buscarDetallePorProducto(idProducto)
-                .map(detalle -> detalle.getCantidad() >= cantidadRequerida)
-                .orElse(false);
+    // Buscar todos los lotes de un producto en almacén
+    public List<DetalleInventario> buscarDetallesPorProducto(String idProducto) {
+        return detalleInventario.stream()
+                .filter(detalle -> detalle.getIdProducto().equals(idProducto))
+                .toList();
     }
 
-    public Integer obtenerStockDisponible(String idProducto) {
-        return buscarDetallePorProducto(idProducto)
-                .map(DetalleInventario::getCantidad)
-                .orElse(0);
-    }
-
-    public void actualizarStock(String idProducto, Integer nuevaCantidad) {
-        Optional<DetalleInventario> detalleExistente = buscarDetallePorProducto(idProducto);
-
-        if (detalleExistente.isPresent()) {
-            DetalleInventario detalle = detalleExistente.get();
-            detalle.setCantidad(nuevaCantidad);
-        } else {
-            DetalleInventario nuevoDetalle = new DetalleInventario(idProducto, nuevaCantidad, LocalDateTime.now());
-            detalleInventario.add(nuevoDetalle);
+    //Agregar lote al almacén (Encargado registra entrada)
+    public void agregarLote(String idLote, String idProducto, Integer cantidad) {
+        // Verificar si el lote ya existe en almacén
+        if (buscarDetallePorLote(idLote).isPresent()) {
+            throw new IllegalStateException("El lote " + idLote + " ya está registrado en el inventario");
         }
 
+        DetalleInventario detalle = new DetalleInventario(
+                idLote,
+                idProducto,
+                cantidad,
+                LocalDateTime.now()
+        );
+        detalleInventario.add(detalle);
         this.ultimaActualizacion = LocalDateTime.now();
     }
 
-    public void reducirStock(String idProducto, Integer cantidad) {
-        Integer stockActual = obtenerStockDisponible(idProducto);
-        if (stockActual >= cantidad) {
-            actualizarStock(idProducto, stockActual - cantidad);
-        } else {
-            throw new IllegalStateException("Stock insuficiente para el producto: " + idProducto);
-        }
+    // Actualizar cantidad de un lote en almacén (ajustes)
+    public void actualizarCantidadLote(String idLote, Integer nuevaCantidad) {
+        DetalleInventario detalle = buscarDetallePorLote(idLote)
+                .orElseThrow(() -> new IllegalStateException("Lote " + idLote + " no encontrado en inventario"));
+
+        detalle.setCantidad(nuevaCantidad);
+        this.ultimaActualizacion = LocalDateTime.now();
     }
 
+    //Reducir cantidad de un lote (al vender)
+    public void reducirCantidadLote(String idLote, Integer cantidad) {
+        DetalleInventario detalle = buscarDetallePorLote(idLote)
+                .orElseThrow(() -> new IllegalStateException("Lote " + idLote + " no encontrado en inventario"));
 
+        if (detalle.getCantidad() < cantidad) {
+            throw new IllegalStateException(
+                    "Cantidad insuficiente en inventario. Disponible: " + detalle.getCantidad() + ", Requerido: " + cantidad
+            );
+        }
+
+        detalle.setCantidad(detalle.getCantidad() - cantidad);
+        this.ultimaActualizacion = LocalDateTime.now();
+    }
+
+    //Eliminar lote del almacén (si cantidad = 0 o lote vencido)
+    public void eliminarLote(String idLote) {
+        detalleInventario.removeIf(detalle -> detalle.getIdLote().equals(idLote));
+        this.ultimaActualizacion = LocalDateTime.now();
+    }
+
+    //Obtener stock total de un producto (suma de todos sus lotes)
+    public Integer obtenerStockTotalProducto(String idProducto) {
+        return buscarDetallesPorProducto(idProducto).stream()
+                .mapToInt(DetalleInventario::getCantidad)
+                .sum();
+    }
 }

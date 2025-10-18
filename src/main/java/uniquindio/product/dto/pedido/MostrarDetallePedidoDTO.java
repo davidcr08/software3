@@ -3,6 +3,7 @@ package uniquindio.product.dto.pedido;
 import uniquindio.product.model.enums.TipoProducto;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 
 public record MostrarDetallePedidoDTO(
         String idProducto,
@@ -11,5 +12,8 @@ public record MostrarDetallePedidoDTO(
         String imagenProducto,
         BigDecimal precioUnitario,
         Integer cantidad,
-        BigDecimal subtotal
+        BigDecimal subtotal,
+        String idLote,
+        String codigoLote,
+        LocalDate fechaVencimiento
 ) {}
