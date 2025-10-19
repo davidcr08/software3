@@ -20,8 +20,10 @@ public class Inventario {
 
     @Id
     @EqualsAndHashCode.Include
-    @GeneratedValue(strategy = GenerationType.UUID)
+    @Column(name = "id_inventario", nullable = false, updatable = false)
     private String idInventario;
+    @Version
+    private Long version;
 
     @Column(name = "ultima_actualizacion")
     private LocalDateTime ultimaActualizacion;
