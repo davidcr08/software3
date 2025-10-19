@@ -13,88 +13,109 @@ import uniquindio.product.dto.email.EmailDTO;
 import uniquindio.product.exceptions.EmailException;
 import uniquindio.product.services.interfaces.EmailService;
 
+import jakarta.annotation.PostConstruct;
+import jakarta.annotation.PreDestroy;
+
 @Service
 @Validated
-
 public class EmailServiceImp implements EmailService {
 
     private final SmtpProperties smtpProperties;
+    private Mailer mailer;
 
     public EmailServiceImp(SmtpProperties smtpProperties) {
         this.smtpProperties = smtpProperties;
     }
 
-    @Override
-    @Async
-    public void enviarCorreo(EmailDTO emailDTO) throws EmailException {
-
-        // Construcción del correo con formato HTML y CSS
-        String htmlContent = "<!DOCTYPE html>" +
-                "<html lang=\"es\">" +
-                "<head>" +
-                "<meta charset=\"UTF-8\">" +
-                "<meta http-equiv=\"X-UA-Compatible\" content=\"IE=edge\">" +
-                "<meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">" +
-                "<title>" + emailDTO.asunto() + "</title>" +
-                "<style>" +
-                "body { margin: 0; padding: 0; font-family: Arial, sans-serif; background-color: #ffffff; background-image: radial-gradient(#444cf7 0.5px, #ffffff 0.5px); background-size: 10px 10px; color: #333; }" +
-                "table { width: 100%; }" +
-                "td { padding: 20px; }" +
-                ".container { max-width: 600px; margin: 0 auto; background-color: #f3eded; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); }" +
-                ".header { font-size: 24px; font-weight: bold; color: #333; text-align: center; }" +
-                ".body { font-size: 16px; color: #555; line-height: 1.5; }" +
-                ".footer { font-size: 14px; color: #999; text-align: center; }" +
-                "</style>" +
-                "</head>" +
-                "<body>" +
-                "<table role=\"presentation\" border=\"0\" cellpadding=\"0\" cellspacing=\"0\">" +
-                "<tr>" +
-                "<td align=\"center\">" +
-                "<table role=\"presentation\" class=\"container\" border=\"0\" cellpadding=\"0\" cellspacing=\"0\">" +
-                "<tr>" +
-                "<td class=\"header\">" +
-                "Codigo de verificacion" +
-                "</td>" +
-                "</tr>" +
-                "<tr>" +
-                "<td class=\"body\">" +
-                emailDTO.cuerpo() +  // Contenido dinámico del cuerpo del correo
-                "</td>" +
-                "</tr>" +
-                "<tr>" +
-                "<td class=\"footer\">" +
-                "&copy; 2025 - Essentia" +
-                "</td>" +
-                "</tr>" +
-                "</table>" +
-                "</td>" +
-                "</tr>" +
-                "</table>" +
-                "</body>" +
-                "</html>";
-
-        Email email = EmailBuilder.startingBlank()
-                .from(smtpProperties.getUsername())
-                .to(emailDTO.destinatario())
-                .withSubject(emailDTO.asunto())
-                .withHTMLText(htmlContent)
-                .buildEmail();
-
-        try (Mailer mailer = MailerBuilder
+    @PostConstruct
+    public void init() {
+        // Crear el Mailer una sola vez al iniciar la aplicación
+        this.mailer = MailerBuilder
                 .withSMTPServer(
                         smtpProperties.getHost(),
                         smtpProperties.getPort(),
                         smtpProperties.getUsername(),
                         smtpProperties.getPassword())
-                .withTransportStrategy(TransportStrategy.SMTP)
+                .withTransportStrategy(TransportStrategy.SMTP_TLS) // Usar SMTP_TLS en lugar de SMTP
                 .withSessionTimeout(10 * 1000)
                 .withDebugLogging(true)
-                .buildMailer()) {
+                .buildMailer();
+    }
 
+    @PreDestroy
+    public void cleanup() {
+        // Cerrar el Mailer solo cuando la aplicación se detenga
+        if (mailer != null) {
+            mailer.shutdownConnectionPool();
+        }
+    }
+
+    @Override
+    @Async
+    public void enviarCorreo(EmailDTO emailDTO) throws EmailException {
+        try {
+            // Construcción del correo con formato HTML y CSS
+            String htmlContent = "<!DOCTYPE html>" +
+                    "<html lang=\"es\">" +
+                    "<head>" +
+                    "<meta charset=\"UTF-8\">" +
+                    "<meta http-equiv=\"X-UA-Compatible\" content=\"IE=edge\">" +
+                    "<meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">" +
+                    "<title>" + emailDTO.asunto() + "</title>" +
+                    "<style>" +
+                    "body { margin: 0; padding: 0; font-family: Arial, sans-serif; background-color: #ffffff; background-image: radial-gradient(#444cf7 0.5px, #ffffff 0.5px); background-size: 10px 10px; color: #333; }" +
+                    "table { width: 100%; }" +
+                    "td { padding: 20px; }" +
+                    ".container { max-width: 600px; margin: 0 auto; background-color: #f3eded; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); }" +
+                    ".header { font-size: 24px; font-weight: bold; color: #333; text-align: center; }" +
+                    ".body { font-size: 16px; color: #555; line-height: 1.5; }" +
+                    ".footer { font-size: 14px; color: #999; text-align: center; }" +
+                    "</style>" +
+                    "</head>" +
+                    "<body>" +
+                    "<table role=\"presentation\" border=\"0\" cellpadding=\"0\" cellspacing=\"0\">" +
+                    "<tr>" +
+                    "<td align=\"center\">" +
+                    "<table role=\"presentation\" class=\"container\" border=\"0\" cellpadding=\"0\" cellspacing=\"0\">" +
+                    "<tr>" +
+                    "<td class=\"header\">" +
+                    "Código de verificación" +
+                    "</td>" +
+                    "</tr>" +
+                    "<tr>" +
+                    "<td class=\"body\">" +
+                    emailDTO.cuerpo() +
+                    "</td>" +
+                    "</tr>" +
+                    "<tr>" +
+                    "<td class=\"footer\">" +
+                    "&copy; 2025 - Essentia" +
+                    "</td>" +
+                    "</tr>" +
+                    "</table>" +
+                    "</td>" +
+                    "</tr>" +
+                    "</table>" +
+                    "</body>" +
+                    "</html>";
+
+            Email email = EmailBuilder.startingBlank()
+                    .from(smtpProperties.getUsername())
+                    .to(emailDTO.destinatario())
+                    .withSubject(emailDTO.asunto())
+                    .withHTMLText(htmlContent)
+                    .buildEmail();
+
+            // Enviar el correo
             mailer.sendMail(email);
+
+            // Log para verificar que el correo se envió
+            System.out.println("Correo enviado exitosamente a: " + emailDTO.destinatario());
+
         } catch (Exception e) {
+            System.err.println("Error enviando correo: " + e.getMessage());
             e.printStackTrace();
-            throw new EmailException("Error en el envio del correo");
+            throw new EmailException("Error en el envio del correo: " + e.getMessage());
         }
     }
 }

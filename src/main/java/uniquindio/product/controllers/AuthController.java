@@ -56,8 +56,14 @@ public class AuthController {
     public ResponseEntity<MensajeDTO<String>> enviarCodigoRecuperacion(
             @Valid @RequestBody CodigoContraseniaDTO codigoContraseniaDTO) throws UsuarioException, EmailException {
 
-        usuarioService.enviarCodigoRecuperacionPassword(codigoContraseniaDTO);
-        return ResponseEntity.ok(new MensajeDTO<>(false, "Código enviado correctamente al correo electrónico."));
+        try {
+            usuarioService.enviarCodigoRecuperacionPassword(codigoContraseniaDTO);
+
+            return ResponseEntity.ok(new MensajeDTO<>(false, "Código enviado correctamente al correo electrónico."));
+
+        } catch (UsuarioException e) {
+            throw e;
+        }
     }
 
     /**

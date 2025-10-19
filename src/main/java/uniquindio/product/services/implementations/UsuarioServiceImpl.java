@@ -137,10 +137,9 @@ public class UsuarioServiceImpl implements UsuarioService {
             throw new UsuarioException("El código de verificación es incorrecto.");
         }
 
-        // Si el código es correcto y no ha expirado → activar cuenta
         usuario.setEstadoCuenta(EstadoCuenta.ACTIVO);
-        usuario.setCodigoVerificacionContrasenia(null);
-        usuario.setFechaExpiracionCodigoContrasenia(null);
+      //  usuario.setCodigoVerificacionContrasenia(null);
+      //  usuario.setFechaExpiracionCodigoContrasenia(null);
         usuarioRepository.save(usuario);
 
         return validarCodigoDTO;
@@ -196,25 +195,54 @@ public class UsuarioServiceImpl implements UsuarioService {
     @Override
     public void enviarCodigoRecuperacionPassword(CodigoContraseniaDTO codigoContraseniaDTO) throws UsuarioException, EmailException {
 
-        // Buscar el usuario en la base de datos usando el correo proporcionado
-        Usuario usuarioExistente = usuarioRepository.findByCorreoElectronico(codigoContraseniaDTO.correoElectronico())
-                .orElseThrow(() -> new UsuarioException("Usuario no encontrado para el correo proporcionado"));
+        try {
+            // Buscar el usuario
+            Usuario usuarioExistente = usuarioRepository.findByCorreoElectronico(codigoContraseniaDTO.correoElectronico())
+                    .orElseThrow(() -> {
+                        System.out.println(" USUARIO NO ENCONTRADO");
+                        return new UsuarioException("Usuario no encontrado para el correo proporcionado");
+                    });
 
-        // Generar un código de recuperación único
-        String codigoRecuperacion = codigoValidacionService.generarCodigoValidacion(5);
+            System.out.println(" Usuario encontrado: " + usuarioExistente.getNombre());
 
-        // Guardar el código y la fecha de expiración
-        usuarioExistente.setCodigoVerificacionContrasenia(codigoRecuperacion);
-        usuarioExistente.setFechaExpiracionCodigoContrasenia(LocalDateTime.now().plusMinutes(10));
-        usuarioRepository.save(usuarioExistente);
+            // Verificar que la cuenta esté activa
+            if (!usuarioExistente.getEstadoCuenta().equals(EstadoCuenta.ACTIVO)) {
+                System.out.println(" CUENTA INACTIVA");
+                throw new UsuarioException("La cuenta no está activa. Active su cuenta primero.");
+            }
 
-        // Enviar el código al correo electrónico
-        String asunto = "Código de recuperación de contraseña";
-        String cuerpo = "El código para recuperar tu contraseña es: " + codigoRecuperacion;
-        EmailDTO emailDTO = new EmailDTO(asunto, cuerpo, codigoContraseniaDTO.correoElectronico());
-        emailService.enviarCorreo(emailDTO);
+            // Generar código de recuperación
+            String codigoRecuperacion = codigoValidacionService.generarCodigoValidacion(5);
+            System.out.println(" Código generado: " + codigoRecuperacion);
+
+            // Guardar el código y fecha de expiración
+            usuarioExistente.setCodigoVerificacionContrasenia(codigoRecuperacion);
+            usuarioExistente.setFechaExpiracionCodigoContrasenia(LocalDateTime.now().plusMinutes(10));
+
+            usuarioRepository.save(usuarioExistente);
+            System.out.println(" Usuario actualizado en BD");
+
+            // Enviar email
+            String asunto = "Código de recuperación de contraseña";
+            String cuerpo = "El código para recuperar tu contraseña es: " + codigoRecuperacion;
+            EmailDTO emailDTO = new EmailDTO(asunto, cuerpo, codigoContraseniaDTO.correoElectronico());
+
+            System.out.println(" Enviando email...");
+            emailService.enviarCorreo(emailDTO);
+            System.out.println(" Email enviado exitosamente");
+
+        } catch (UsuarioException e) {
+            System.out.println(" UsuarioException: " + e.getMessage());
+            throw e;
+        } catch (EmailException e) {
+            System.out.println(" EmailException: " + e.getMessage());
+            throw e;
+        } catch (Exception e) {
+            System.out.println(" Error inesperado: " + e.getMessage());
+            e.printStackTrace();
+            throw new UsuarioException("Error en el proceso de recuperación: " + e.getMessage());
+        }
     }
-
     /**
      * Método para cambiar la contraseña de un usuario a partir de un código de verificación
      * @param cambiarPasswordDTO DTO con el código y la nueva contraseña
@@ -222,27 +250,49 @@ public class UsuarioServiceImpl implements UsuarioService {
      */
     @Override
     public void cambiarPassword(CambiarPasswordDTO cambiarPasswordDTO) throws UsuarioException, EmailException {
-        // Buscar al usuario por el código de verificación
-        Usuario usuario = usuarioRepository.findByCodigoVerificacionContrasenia(cambiarPasswordDTO.codigoVerificacion())
-                .orElseThrow(() -> new UsuarioException("Código de verificación inválido o expirado."));
 
-        // Validar si el código ha expirado
-        if (usuario.getFechaExpiracionCodigoContrasenia() != null &&
-                LocalDateTime.now().isAfter(usuario.getFechaExpiracionCodigoContrasenia())) {
+        System.out.println("=== CAMBIANDO CONTRASEÑA ===");
+        System.out.println("Código recibido: " + cambiarPasswordDTO.codigoVerificacion());
 
-            manejarCodigoExpirado(usuario, usuario.getCorreoElectronico(), "Recuperación");
-            throw new UsuarioException("El código de recuperación ha expirado. Se ha enviado un nuevo código.");
+        try {
+            // Buscar al usuario por el código de verificación
+            Usuario usuario = usuarioRepository.findByCodigoVerificacionContrasenia(cambiarPasswordDTO.codigoVerificacion())
+                    .orElseThrow(() -> {
+                        System.out.println(" CÓDIGO NO VÁLIDO");
+                        return new UsuarioException("Código de verificación inválido o expirado.");
+                    });
+
+            System.out.println(" Usuario encontrado: " + usuario.getCorreoElectronico());
+
+            // Validar si el código ha expirado
+            if (usuario.getFechaExpiracionCodigoContrasenia() != null &&
+                    LocalDateTime.now().isAfter(usuario.getFechaExpiracionCodigoContrasenia())) {
+
+                System.out.println(" CÓDIGO EXPIRADO");
+                manejarCodigoExpirado(usuario, usuario.getCorreoElectronico(), "Recuperación");
+                throw new UsuarioException("El código de recuperación ha expirado. Se ha enviado un nuevo código.");
+            }
+
+            // Cambiar contraseña
+            String contrasenaEncriptada = passwordEncoder.encode(cambiarPasswordDTO.passwordNueva());
+            usuario.setContrasena(contrasenaEncriptada);
+
+            // Limpiar código de verificación
+            usuario.setCodigoVerificacionContrasenia(null);
+            usuario.setFechaExpiracionCodigoContrasenia(null);
+
+            usuarioRepository.save(usuario);
+            System.out.println(" Contraseña cambiada exitosamente");
+            System.out.println("=== PROCESO COMPLETADO ===");
+
+        } catch (UsuarioException e) {
+            System.out.println(" UsuarioException: " + e.getMessage());
+            throw e;
+        } catch (Exception e) {
+            System.out.println(" Error inesperado: " + e.getMessage());
+            e.printStackTrace();
+            throw new UsuarioException("Error al cambiar la contraseña: " + e.getMessage());
         }
-
-        // Si el código aún es válido → encriptar la nueva contraseña
-        String contrasenaEncriptada = passwordEncoder.encode(cambiarPasswordDTO.passwordNueva());
-        usuario.setContrasena(contrasenaEncriptada);
-
-        // Limpiar código de verificación y expiración
-        usuario.setCodigoVerificacionContrasenia(null);
-        usuario.setFechaExpiracionCodigoContrasenia(null);
-
-        usuarioRepository.save(usuario);
     }
 
     /**
