@@ -22,8 +22,10 @@ public class Inventario {
     @EqualsAndHashCode.Include
     @Column(name = "id_inventario", nullable = false, updatable = false)
     private String idInventario;
+
     @Version
-    private Long version;
+    @Column(name = "version")
+    private Integer version;
 
     @Column(name = "ultima_actualizacion")
     private LocalDateTime ultimaActualizacion;
