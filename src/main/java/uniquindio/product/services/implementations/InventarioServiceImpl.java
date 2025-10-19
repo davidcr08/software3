@@ -39,11 +39,18 @@ public class InventarioServiceImpl implements InventarioService {
 
     @Override
     public void inicializarInventario() throws InventarioException {
-        if (inventarioRepository.count() == 0) {
+        // Buscar inventario por ID fijo
+        Optional<Inventario> optInventario = inventarioRepository.findById(INVENTARIO_ID);
+
+        if (optInventario.isEmpty()) {
+            // No existe, crear uno nuevo
             Inventario inventario = new Inventario();
             inventario.setIdInventario(INVENTARIO_ID);
             inventario.setUltimaActualizacion(LocalDateTime.now());
             inventarioRepository.save(inventario);
+            log.info("Inventario principal inicializado");
+        } else {
+            log.info("Inventario principal ya existe");
         }
     }
 
@@ -178,55 +185,33 @@ public class InventarioServiceImpl implements InventarioService {
 
         // Buscar el lote
         Lote lote = loteRepository.findById(idLote)
-                .orElseThrow(() -> new LoteException(
-                        "No se encontró el lote con ID: " + idLote
-                ));
+                .orElseThrow(() -> new LoteException("No se encontró el lote con ID: " + idLote));
 
-        // Validar que el lote esté EN_PRODUCCION
         if (lote.getEstado() != EstadoLote.EN_PRODUCCION) {
-            throw new LoteException(
-                    "Solo se pueden registrar lotes en estado EN_PRODUCCION. " +
-                            "Estado actual del lote " + lote.getCodigoLote() + ": " + lote.getEstado()
-            );
+            throw new LoteException("Solo se pueden registrar lotes en estado EN_PRODUCCION");
         }
-
-        // Validar que tenga cantidad producida
         if (lote.getCantidadProducida() <= 0) {
-            throw new LoteException(
-                    "El lote " + lote.getCodigoLote() + " no tiene cantidad producida"
-            );
+            throw new LoteException("El lote no tiene cantidad producida");
         }
-
-        // Validar que no esté vencido
         if (lote.estaVencido()) {
-            throw new LoteException(
-                    "No se puede ingresar el lote " + lote.getCodigoLote() +
-                            " al almacén porque está vencido (venció el " + lote.getFechaVencimiento() + ")"
-            );
+            throw new LoteException("No se puede ingresar el lote porque está vencido");
         }
 
-        // Obtener el inventario principal
+        // Obtener inventario principal (ya existente)
         Inventario inventario = inventarioRepository.findById(INVENTARIO_ID)
-                .orElseThrow(() -> new InventarioException(
-                        "Inventario no inicializado. Por favor inicialice el inventario primero"
-                ));
+                .orElseThrow(() -> new InventarioException("Inventario no inicializado"));
 
-        // Actualizar estado del lote: EN_PRODUCCION → DISPONIBLE
+        // Actualizar estado del lote y cantidad disponible
         lote.setEstado(EstadoLote.DISPONIBLE);
         lote.setCantidadDisponible(lote.getCantidadProducida());
-        loteRepository.save(lote);
+        loteRepository.save(lote); // Guardar lote
 
-        // Registrar en inventario (almacén físico)
-        inventario.agregarLote(
-                lote.getId(),
-                lote.getIdProducto(),
-                lote.getCantidadProducida()
-        );
-        inventarioRepository.save(inventario);
+        // Registrar en inventario
+        inventario.agregarLote(lote.getId(), lote.getIdProducto(), lote.getCantidadProducida());
 
+        // **No es necesario llamar a save()** si inventario ya está en la sesión de Hibernate
         log.info("Lote ingresado al almacén: {} - Producto: {} - Cantidad: {}",
-                lote.getCodigoLote(),
-                lote.getIdProducto(),
-                lote.getCantidadProducida());
+                lote.getCodigoLote(), lote.getIdProducto(), lote.getCantidadProducida());
     }
+
 }
