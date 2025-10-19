@@ -153,11 +153,14 @@
 			<plugin>
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-maven-plugin</artifactId>
-				<configuration>
-					<finalName>app</finalName>
-				</configuration>
+				<executions>
+					<execution>
+						<goals>
+							<goal>repackage</goal>
+						</goals>
+					</execution>
+				</executions>
 			</plugin>
-
 			<!-- Compilador en Java 21 -->
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
