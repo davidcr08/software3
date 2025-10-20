@@ -1,5 +1,6 @@
 package uniquindio.product.services.interfaces;
 
+import uniquindio.product.dto.inventario.DetalleLoteDTO;
 import uniquindio.product.dto.inventario.ProductoBajoStockDTO;
 import uniquindio.product.dto.inventario.ResumenInventarioDTO;
 import uniquindio.product.dto.inventario.StockPorLoteDTO;
@@ -13,6 +14,7 @@ public interface InventarioService {
 
     void inicializarInventario() throws InventarioException;
     Integer obtenerStockDisponible(String idProducto) throws ProductoException;
+    List<DetalleLoteDTO> listarLotes();
     List<ResumenInventarioDTO> obtenerResumenInventario();
     //Stock detallado por lote
     List<StockPorLoteDTO> obtenerStockPorLote(String idProducto) throws ProductoException;

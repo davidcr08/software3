@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import uniquindio.product.dto.inventario.DetalleLoteDTO;
 import uniquindio.product.dto.inventario.ProductoBajoStockDTO;
 import uniquindio.product.dto.inventario.ResumenInventarioDTO;
 import uniquindio.product.dto.inventario.StockPorLoteDTO;
@@ -85,6 +86,24 @@ public class InventarioServiceImpl implements InventarioService {
 
         return InventarioMapper.toResumenInventarioDTOList(lotesPorProducto, productoRepository);
     }
+
+    @Override
+    public List<DetalleLoteDTO> listarLotes() {
+        return loteRepository.findAll()
+                .stream()
+                .map(l -> new DetalleLoteDTO(
+                        l.getId(),
+                        l.getIdProducto(),
+                        productoRepository.findById(l.getIdProducto())
+                                .map(Producto::getNombreProducto)
+                                .orElse("Desconocido"),
+                        l.getCantidadDisponible(),
+                        l.getFechaVencimiento(),
+                        l.getEstado()
+                ))
+                .toList();
+    }
+
 
     @Override
     public List<StockPorLoteDTO> obtenerStockPorLote(String idProducto) throws ProductoException {

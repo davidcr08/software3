@@ -7,6 +7,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import uniquindio.product.dto.autenticacion.MensajeDTO;
+import uniquindio.product.dto.inventario.DetalleLoteDTO;
 import uniquindio.product.dto.inventario.ProductoBajoStockDTO;
 import uniquindio.product.dto.inventario.ResumenInventarioDTO;
 import uniquindio.product.dto.inventario.StockPorLoteDTO;
@@ -77,4 +78,10 @@ public class EncargadoAlmacenController {
         inventarioService.registrarEntradaAlmacen(idLote);
         return ResponseEntity.ok(new MensajeDTO<>(false, "Lote registrado en almacén correctamente"));
     }
+
+    @GetMapping("/lotes")
+    public ResponseEntity<MensajeDTO<List<DetalleLoteDTO>>> listarLotes() {
+        return ResponseEntity.ok(new MensajeDTO<>(false, inventarioService.listarLotes()));
+    }
+
 }
