@@ -71,22 +71,16 @@ public class InventarioServiceImpl implements InventarioService {
 
     @Override
     public List<ResumenInventarioDTO> obtenerResumenInventario() {
-        LocalDate hoy = LocalDate.now();
 
-        // Traer solo lotes válidos desde la BD
-        List<Lote> lotesValidos = loteRepository
-                .findByEstadoAndCantidadDisponibleGreaterThanAndFechaVencimientoAfter(
-                        EstadoLote.DISPONIBLE,
-                        0,
-                        hoy
-                );
+        // Traer todos los lotes de la BD sin restricciones
+        List<Lote> todosLosLotes = loteRepository.findAll();
 
-        if (lotesValidos.isEmpty()) {
+        if (todosLosLotes.isEmpty()) {
             return Collections.emptyList();
         }
 
         // Agrupar por producto
-        Map<String, List<Lote>> lotesPorProducto = lotesValidos.stream()
+        Map<String, List<Lote>> lotesPorProducto = todosLosLotes.stream()
                 .collect(Collectors.groupingBy(Lote::getIdProducto));
 
         return InventarioMapper.toResumenInventarioDTOList(lotesPorProducto, productoRepository);
