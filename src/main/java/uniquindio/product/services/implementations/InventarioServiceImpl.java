@@ -2,6 +2,7 @@ package uniquindio.product.services.implementations;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import uniquindio.product.dto.inventario.DetalleLoteDTO;
@@ -39,12 +40,28 @@ public class InventarioServiceImpl implements InventarioService {
     private static final String INVENTARIO_ID = "inventario-principal";
 
     @Override
-    public void inicializarInventario() throws InventarioException {
-        if (inventarioRepository.count() == 0) {
-            Inventario inventario = new Inventario();
-            inventario.setIdInventario(INVENTARIO_ID);
-            inventario.setUltimaActualizacion(LocalDateTime.now());
-            inventarioRepository.save(inventario);
+    public void inicializarInventario() {
+        try {
+            // Verificar si ya existe
+            boolean existe = inventarioRepository.existsById(INVENTARIO_ID);
+
+            if (!existe) {
+                Inventario inventario = new Inventario();
+                inventario.setIdInventario(INVENTARIO_ID);
+                inventario.setUltimaActualizacion(LocalDateTime.now());
+                inventario.setDetalleInventario(new ArrayList<>());
+
+                inventarioRepository.save(inventario);
+                log.info("Inventario principal inicializado correctamente (ID: {})", INVENTARIO_ID);
+            } else {
+                log.info("Inventario principal ya existe (ID: {}), omitiendo inicialización", INVENTARIO_ID);
+            }
+        } catch (DataIntegrityViolationException e) {
+            log.warn("El inventario ya fue creado por otra instancia (concurrencia detectada)");
+            // No lanzar excepción, es un caso válido
+        } catch (Exception e) {
+            log.error("Error inesperado al inicializar inventario: {}", e.getMessage(), e);
+            throw new InventarioException("Error al inicializar inventario: " + e.getMessage());
         }
     }
 

@@ -12,7 +12,7 @@ import java.util.List;
 
 public interface InventarioService {
 
-    void inicializarInventario() throws InventarioException;
+    void inicializarInventario();
     Integer obtenerStockDisponible(String idProducto) throws ProductoException;
     List<DetalleLoteDTO> listarLotes();
     List<ResumenInventarioDTO> obtenerResumenInventario();

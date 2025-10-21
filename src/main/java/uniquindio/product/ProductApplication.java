@@ -6,10 +6,10 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.context.properties.ConfigurationPropertiesScan;
 import org.springframework.context.annotation.Bean;
-import org.springframework.transaction.annotation.Transactional;
 import uniquindio.product.exceptions.InventarioException;
 import uniquindio.product.services.interfaces.InventarioService;
 
+@Slf4j
 @SpringBootApplication
 @ConfigurationPropertiesScan
 public class ProductApplication {
@@ -18,17 +18,14 @@ public class ProductApplication {
 	}
 
 	@Bean
-	@Transactional
 	public CommandLineRunner inicializarInventario(InventarioService inventarioService) {
 		return args -> {
 			try {
 				inventarioService.inicializarInventario();
 
 			} catch (InventarioException e) {
-
+				log.error("Error durante inicialización del inventario", e);
 			}
 		};
 	}
 }
-
-
