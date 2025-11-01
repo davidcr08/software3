@@ -279,7 +279,7 @@ public class UsuarioServiceImpl implements UsuarioService {
             throw new UsuarioException("La contraseña es incorrecta.");
         }
 
-        if (UsuarioMapper.cuentaEstaActiva(usuario)) {
+        if (!UsuarioMapper.cuentaEstaActiva(usuario)) {
             throw new UsuarioException("La cuenta no está activa.");
         }
 

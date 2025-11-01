@@ -45,7 +45,8 @@ public final class UsuarioMapper {
                 usuario.getCedula(),
                 usuario.getNombre(),
                 usuario.getTelefono(),
-                usuario.getCorreoElectronico()
+                usuario.getCorreoElectronico(),
+                usuario.getRol()
         );
     }
 
