@@ -51,7 +51,7 @@ public class UsuarioController {
             Authentication authentication) throws UsuarioException {
 
         String id = AuthUtils.obtenerIdUsuarioDesdeToken(authentication);
-        usuarioService.editarUsuario(usuarioDTO);
+        usuarioService.editarUsuario(id, usuarioDTO); // ← Pasa el ID del token
         return ResponseEntity.ok(new MensajeDTO<>(false, "Perfil actualizado correctamente"));
     }
 
