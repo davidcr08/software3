@@ -46,7 +46,9 @@ public final class UsuarioMapper {
                 usuario.getNombre(),
                 usuario.getTelefono(),
                 usuario.getCorreoElectronico(),
-                usuario.getRol()
+                usuario.getRol(),
+                usuario.getCiudadDeResidencia(),
+                usuario.getDireccion()
         );
     }
 
@@ -155,7 +157,7 @@ public final class UsuarioMapper {
 
     /**
      * Actualiza los datos editables de un usuario desde EditarUsuarioDTO.
-     * Solo actualiza nombre y teléfono. La contraseña se maneja por separado.
+     * La contraseña se maneja por separado.
      *
      * @param usuario entidad Usuario a actualizar
      * @param usuarioEditado DTO con los nuevos datos
@@ -163,6 +165,8 @@ public final class UsuarioMapper {
     public static void actualizarDatosUsuario(Usuario usuario, EditarUsuarioDTO usuarioEditado) {
         usuario.setNombre(usuarioEditado.nombre());
         usuario.setTelefono(usuarioEditado.telefono());
+        usuario.setCiudadDeResidencia(usuarioEditado.ciudadDeResidencia());
+        usuario.setDireccion(usuarioEditado.direccion());
     }
 
     /**
